@@ -314,7 +314,9 @@ function filterCategoriesByProvider() {
         if (otherGroup) otherGroup.style.display = 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'block';
     } else {
-        if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'block';
+        if (reactionsSfwGroup) {
+            reactionsSfwGroup.style.display = provider === 'waifu.im' ? 'none' : 'block';
+        }
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'block';
         if (otherGroup) otherGroup.style.display = provider === 'nekos.life' ? 'block' : 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
