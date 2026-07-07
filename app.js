@@ -504,7 +504,14 @@ async function loadActiveCategoryImage() {
         }
         
         const response = await fetch(fetchUrl);
-        if (!response.ok) throw new Error(`Error de conexión con el proveedor (${response.status})`);
+        if (!response.ok) {
+            let errMsg = `Error de conexión con el proveedor (${response.status})`;
+            try {
+                const errData = await response.json();
+                if (errData.error) errMsg = errData.error;
+            } catch (e) {}
+            throw new Error(errMsg);
+        }
         
         const data = await response.json();
         let imageUrl = '';
