@@ -898,21 +898,21 @@ a:hover {
 
 .util-body textarea {
     width: 100%;
-    background: rgba(0, 0, 0, 0.05);
+    background: #f1f5f9; /* Gris sólido claro */
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-md);
     color: var(--text-main);
     padding: 12px;
     font-family: var(--font-body);
     font-size: 0.95rem;
-    resize: none;
+    resize: vertical;
     outline: none;
     transition: var(--transition-fast);
 }
 
 .util-body textarea:focus {
     border-color: var(--primary);
-    background: rgba(0, 0, 0, 0.1);
+    background: #ffffff; /* Fondo blanco puro al enfocar para destacar */
 }
 
 .util-result {
@@ -978,7 +978,7 @@ a:hover {
 
 .input-group input {
     flex: 1;
-    background: rgba(0, 0, 0, 0.05);
+    background: #f1f5f9; /* Gris sólido claro para la barra de búsqueda/pregunta */
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-md);
     color: var(--text-main);
@@ -990,7 +990,7 @@ a:hover {
 
 .input-group input:focus {
     border-color: var(--primary);
-    background: rgba(0, 0, 0, 0.1);
+    background: #ffffff; /* Fondo blanco puro al enfocar */
 }
 
 .ball-visual-container {

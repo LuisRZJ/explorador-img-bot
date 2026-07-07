@@ -147,6 +147,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             toggleNsfwMode(false);
         });
     }
+    // Actualizar título de la página con el proveedor actual
+    updatePageTitle();
     
     // Filtrar categorías en el sidebar según proveedor
     filterCategoriesByProvider();
@@ -381,6 +383,16 @@ async function switchProvider(providerName) {
     
     const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : 'waifu.im');
     showToast(`Proveedor cambiado a: ${friendlyName}`, 'success');
+    
+    // Actualizar el título de la página
+    updatePageTitle();
+}
+
+// Nueva función para actualizar dinámicamente el título
+function updatePageTitle() {
+    const providerName = state.currentProvider;
+    const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : 'waifu.im');
+    document.title = `NekoExplorer - Explorador Premium de ${friendlyName}`;
 }
 
 // Nueva función helper para alternar el modo NSFW
