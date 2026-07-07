@@ -478,12 +478,12 @@ async function loadActiveCategoryImage() {
             if (!data.url) throw new Error('No se encontró la URL de la ilustración');
             imageUrl = data.url;
         } else if (provider === 'waifu.im') {
-            if (!data.images || data.images.length === 0) throw new Error('No se encontraron ilustraciones');
-            const item = data.images[0];
+            if (!data.items || data.items.length === 0) throw new Error('No se encontraron ilustraciones');
+            const item = data.items[0];
             imageUrl = item.url;
-            if (item.artist) {
-                artistName = item.artist.name;
-                artistHref = item.artist.pixiv || item.artist.twitter || '#';
+            if (item.artists && item.artists.length > 0) {
+                artistName = item.artists[0].name;
+                artistHref = item.artists[0].pixiv || item.artists[0].twitter || item.source || '#';
             }
         } else if (provider === 'nekos.best') {
             if (!data.results || data.results.length === 0) throw new Error('No se encontraron ilustraciones');

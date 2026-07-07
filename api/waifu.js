@@ -10,10 +10,10 @@ export default async function handler(req, res) {
 
     const { included_tags = 'waifu', is_nsfw = 'false' } = req.query;
 
-    // Validar el parámetro is_nsfw para evitar valores inesperados
-    const nsfwValue = is_nsfw === 'true' ? 'true' : 'false';
+    // Validar el parámetro is_nsfw para evitar valores inesperados (PascalCase requerido por API v7)
+    const nsfwValue = is_nsfw === 'true' ? 'True' : 'False';
 
-    const targetUrl = `https://api.waifu.im/search?included_tags=${encodeURIComponent(included_tags)}&is_nsfw=${nsfwValue}`;
+    const targetUrl = `https://api.waifu.im/images?IncludedTags=${encodeURIComponent(included_tags)}&IsNsfw=${nsfwValue}`;
 
     try {
         const response = await fetch(targetUrl, {
