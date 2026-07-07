@@ -490,7 +490,7 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.03);
     padding: 8px 16px;
     border-radius: 30px;
     border: 1px solid var(--border-glass);
@@ -504,7 +504,7 @@ a:hover {
 .tag-value {
     font-family: var(--font-title);
     font-weight: 700;
-    color: white;
+    color: var(--text-dark);
     text-transform: capitalize;
 }
 
@@ -634,13 +634,13 @@ a:hover {
     transform: translateX(-50%) translateY(10px);
     display: flex;
     gap: 12px;
-    background: rgba(10, 10, 18, 0.75);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 8px 16px;
     border-radius: 50px;
     border: 1px solid var(--border-glass);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     z-index: 20;
     transition: var(--transition-normal);
 }
@@ -666,7 +666,7 @@ a:hover {
 }
 
 .control-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     transform: scale(1.1);
 }
 
