@@ -1330,6 +1330,12 @@ a:hover {
         background: rgba(0, 0, 0, 0.05);
         border-radius: 50%;
     }
+    
+    .tag-label::after {
+        content: " (Tocar para cambiar)";
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
 }
 
 @media (max-width: 768px) {
@@ -1658,7 +1664,7 @@ input:checked + .slider:before {
     font-family: var(--font-title);
     font-size: 1.6rem;
     font-weight: 800;
-    color: white;
+    color: var(--text-dark);
 }
 
 .age-gate-container p {
