@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NekoExplorer - Explorador Premium de Nekos.life</title>
+    <meta name="description" content="Explora, descarga y comparte increíbles imágenes de anime, reacciones, fondos de pantalla y avatares con NekoExplorer, impulsado por la API de Nekos.life.">
+    <!-- Favicon oficial de la aplicación -->
+    <link rel="icon" type="image/png" href="avatar_27.png">
+    <!-- Google Fonts: Outfit (Títulos) e Inter (Cuerpo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons para iconos limpios y modernos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Orbes decorativos difuminados en el fondo -->
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="app-container">
+        <!-- Barra de navegación superior -->
+        <header class="navbar">
+            <div class="nav-brand">
+                <i data-lucide="sparkles" class="brand-icon"></i>
+                <span class="brand-name">Neko<span class="gradient-text">Explorer</span></span>
+            </div>
+            
+            <!-- Selector de Proveedor -->
+            <div class="provider-selector-wrapper">
+                <i data-lucide="server" class="provider-icon"></i>
+                <select id="providerSelect" class="provider-select" aria-label="Seleccionar proveedor de imágenes">
+                    <option value="nekos.life">Nekos.life</option>
+                    <option value="nekos.best">nekos.best</option>
+                    <option value="waifu.im">waifu.im</option>
+                </select>
+            </div>
+            
+            <!-- Interruptor NSFW (18+) -->
+            <div class="nsfw-toggle-container">
+                <span class="nsfw-label">NSFW (18+)</span>
+                <label class="switch">
+                    <input type="checkbox" id="nsfwToggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            
+            <!-- Botón de menú móvil -->
+            <button class="menu-toggle" id="menuToggle" aria-label="Abrir menú">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <nav class="nav-menu" id="navMenu">
+                <button class="nav-link active" data-target="gallery-section">
+                    <i data-lucide="image"></i> Explorador
+                </button>
+                <button class="nav-link" data-target="favorites-section">
+                    <i data-lucide="heart"></i> Favoritos
+                    <span class="fav-count" id="favCount">0</span>
+                </button>
+                <button class="nav-link" data-target="text-section">
+                    <i data-lucide="terminal"></i> Utilidades
+                </button>
+                <button class="nav-link" data-target="about-section">
+                    <i data-lucide="info"></i> Info
+                </button>
+            </nav>
+        </header>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            
+            <!-- SECCIÓN 1: GALERÍA / EXPLORADOR -->
+            <section id="gallery-section" class="app-section active">
+                <div class="explorer-layout">
+                    <!-- Sidebar de categorías -->
+                    <aside class="sidebar" id="sidebar">
+                        <div class="sidebar-header">
+                            <h3>Categorías</h3>
+                            <button class="sidebar-close" id="sidebarClose">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                        <div class="category-groups" id="categoryGroupsContainer">
+                            <!-- GRUPO SFW: REACCIONES -->
+                            <div class="category-group" id="reactionsSfwGroup">
+                                <h4 class="group-title">Reacciones (GIFs)</h4>
+                                <div class="group-buttons">
+                                    <!-- Comunes a nekos.life y nekos.best -->
+                                    <button class="cat-btn" data-category="hug" data-providers="life,best"><i data-lucide="heart-handshake"></i> Abrazo</button>
+                                    <button class="cat-btn" data-category="pat" data-providers="life,best"><i data-lucide="sparkles"></i> Acariciar</button>
+                                    <button class="cat-btn" data-category="kiss" data-providers="life,best"><i data-lucide="heart"></i> Beso</button>
+                                    <button class="cat-btn" data-category="slap" data-providers="life,best"><i data-lucide="zap"></i> Bofetada</button>
+                                    <button class="cat-btn" data-category="tickle" data-providers="life,best"><i data-lucide="laugh"></i> Cosquillas</button>
+                                    <button class="cat-btn" data-category="poke" data-providers="life,best"><i data-lucide="hand"></i> Molestar</button>
+                                    <button class="cat-btn" data-category="feed" data-providers="life,best"><i data-lucide="cookie"></i> Alimentar</button>
+                                    <button class="cat-btn" data-category="cuddle" data-providers="life,best"><i data-lucide="smile"></i> Acurrucarse</button>
+                                    <button class="cat-btn" data-category="smug" data-providers="life,best"><i data-lucide="smile-plus"></i> Orgulloso</button>
+                                    <button class="cat-btn" data-category="baka" data-providers="life,best"><i data-lucide="frown"></i> Tonto (Baka)</button>
+                                    
+                                    <!-- Exclusivas nekos.life -->
+                                    <button class="cat-btn" data-category="spank" data-providers="life" style="display: none;"><i data-lucide="zap"></i> Nalgada</button>
+                                    
+                                    <!-- Exclusivas nekos.best -->
+                                    <button class="cat-btn" data-category="bite" data-providers="best" style="display: none;"><i data-lucide="cookie"></i> Morder</button>
+                                    <button class="cat-btn" data-category="blush" data-providers="best" style="display: none;"><i data-lucide="smile"></i> Sonrojarse</button>
+                                    <button class="cat-btn" data-category="bored" data-providers="best" style="display: none;"><i data-lucide="meh"></i> Aburrido</button>
+                                    <button class="cat-btn" data-category="cry" data-providers="best" style="display: none;"><i data-lucide="frown"></i> Llorar</button>
+                                    <button class="cat-btn" data-category="dance" data-providers="best" style="display: none;"><i data-lucide="music"></i> Bailar</button>
+                                    <button class="cat-btn" data-category="facepalm" data-providers="best" style="display: none;"><i data-lucide="hand"></i> Facepalm</button>
+                                    <button class="cat-btn" data-category="happy" data-providers="best" style="display: none;"><i data-lucide="smile-plus"></i> Feliz</button>
+                                    <button class="cat-btn" data-category="highfive" data-providers="best" style="display: none;"><i data-lucide="handshake"></i> Chocar Cinco</button>
+                                    <button class="cat-btn" data-category="laugh" data-providers="best" style="display: none;"><i data-lucide="laugh"></i> Reír</button>
+                                    <button class="cat-btn" data-category="nod" data-providers="best" style="display: none;"><i data-lucide="check-circle"></i> Asentir</button>
+                                    <button class="cat-btn" data-category="nom" data-providers="best" style="display: none;"><i data-lucide="cookie"></i> Comer (Nom)</button>
+                                    <button class="cat-btn" data-category="nope" data-providers="best" style="display: none;"><i data-lucide="x-circle"></i> Nope</button>
+                                    <button class="cat-btn" data-category="shrug" data-providers="best" style="display: none;"><i data-lucide="help-circle"></i> Shrug</button>
+                                    <button class="cat-btn" data-category="sleep" data-providers="best" style="display: none;"><i data-lucide="moon"></i> Dormir</button>
+                                    <button class="cat-btn" data-category="smile" data-providers="best" style="display: none;"><i data-lucide="smile"></i> Sonreír</button>
+                                    <button class="cat-btn" data-category="stare" data-providers="best" style="display: none;"><i data-lucide="eye"></i> Mirar Fijo</button>
+                                    <button class="cat-btn" data-category="think" data-providers="best" style="display: none;"><i data-lucide="brain"></i> Pensar</button>
+                                    <button class="cat-btn" data-category="thumbsup" data-providers="best" style="display: none;"><i data-lucide="thumbs-up"></i> Pulgar Arriba</button>
+                                    <button class="cat-btn" data-category="wave" data-providers="best" style="display: none;"><i data-lucide="hand"></i> Saludar</button>
+                                    <button class="cat-btn" data-category="wink" data-providers="best" style="display: none;"><i data-lucide="eye-off"></i> Guiño</button>
+                                    <button class="cat-btn" data-category="yeet" data-providers="best" style="display: none;"><i data-lucide="wind"></i> Yeet!</button>
+                                    <button class="cat-btn" data-category="bonk" data-providers="best" style="display: none;"><i data-lucide="zap"></i> Bonk!</button>
+                                    <button class="cat-btn" data-category="handhold" data-providers="best" style="display: none;"><i data-lucide="heart-handshake"></i> Tomar Manos</button>
+                                    <button class="cat-btn" data-category="kick" data-providers="best" style="display: none;"><i data-lucide="zap-off"></i> Patear</button>
+                                    <button class="cat-btn" data-category="punch" data-providers="best" style="display: none;"><i data-lucide="zap"></i> Golpear</button>
+                                    <button class="cat-btn" data-category="angry" data-providers="best" style="display: none;"><i data-lucide="flame"></i> Enojado</button>
+                                    <button class="cat-btn" data-category="blowkiss" data-providers="best" style="display: none;"><i data-lucide="heart"></i> Manda Beso</button>
+                                    <button class="cat-btn" data-category="pout" data-providers="best" style="display: none;"><i data-lucide="frown"></i> Puchero</button>
+                                    <button class="cat-btn" data-category="handshake" data-providers="best" style="display: none;"><i data-lucide="handshake"></i> Estrechar Mano</button>
+                                    <button class="cat-btn" data-category="salute" data-providers="best" style="display: none;"><i data-lucide="user-check"></i> Saludo Militar</button>
+                                </div>
+                            </div>
+                            
+                            <!-- GRUPO SFW: PERSONAJES -->
+                            <div class="category-group" id="charactersSfwGroup">
+                                <h4 class="group-title">Personajes y Arte</h4>
+                                <div class="group-buttons">
+                                    <!-- Comunes a nekos.life y nekos.best -->
+                                    <button class="cat-btn active" data-category="waifu" data-providers="all"><i data-lucide="star"></i> Waifu</button>
+                                    <button class="cat-btn" data-category="neko" data-providers="life,best"><i data-lucide="cat"></i> Neko</button>
+                                    <button class="cat-btn" data-category="fox_girl" data-providers="life,best"><i data-lucide="dog"></i> Chica Zorro</button>
+                                    
+                                    <!-- Exclusivas nekos.life -->
+                                    <button class="cat-btn" data-category="ngif" data-providers="life" style="display: none;"><i data-lucide="film"></i> Neko GIF</button>
+                                    <button class="cat-btn" data-category="gecg" data-providers="life" style="display: none;"><i data-lucide="dna"></i> GECG</button>
+                                    <button class="cat-btn" data-category="avatar" data-providers="life" style="display: none;"><i data-lucide="user"></i> Avatar</button>
+                                    <button class="cat-btn" data-category="wallpaper" data-providers="life" style="display: none;"><i data-lucide="monitor"></i> Wallpaper</button>
+                                    
+                                    <!-- Exclusivas SFW waifu.im -->
+                                    <button class="cat-btn" data-category="maid" data-providers="im" style="display: none;"><i data-lucide="user"></i> Maid</button>
+                                    <button class="cat-btn" data-category="marin-kitagawa" data-providers="im" style="display: none;"><i data-lucide="user"></i> Marin Kitagawa</button>
+                                    <button class="cat-btn" data-category="mori-calliope" data-providers="im" style="display: none;"><i data-lucide="user"></i> Mori Calliope</button>
+                                    <button class="cat-btn" data-category="raiden-shogun" data-providers="im" style="display: none;"><i data-lucide="user"></i> Raiden Shogun</button>
+                                    <button class="cat-btn" data-category="genshin-impact" data-providers="im" style="display: none;"><i data-lucide="gamepad-2"></i> Genshin Impact</button>
+                                    <button class="cat-btn" data-category="rem" data-providers="im" style="display: none;"><i data-lucide="user-check"></i> Rem</button>
+                                    <button class="cat-btn" data-category="selfies" data-providers="im" style="display: none;"><i data-lucide="camera"></i> Selfies</button>
+                                    <button class="cat-btn" data-category="uniform" data-providers="im" style="display: none;"><i data-lucide="shirt"></i> Uniforme</button>
+                                </div>
+                            </div>
+                            
+                            <!-- GRUPO SFW: OTROS -->
+                            <div class="category-group" id="otherCategoryGroup">
+                                <h4 class="group-title">Otros (Nekos.life)</h4>
+                                <div class="group-buttons">
+                                    <button class="cat-btn" data-category="meow" data-providers="life"><i data-lucide="paw-print"></i> Gatos</button>
+                                    <button class="cat-btn" data-category="woof" data-providers="life"><i data-lucide="bone"></i> Perros</button>
+                                    <button class="cat-btn" data-category="lizard" data-providers="life"><i data-lucide="scaling"></i> Lagarto</button>
+                                    <button class="cat-btn" data-category="goose" data-providers="life"><i data-lucide="bird"></i> Ganso</button>
+                                </div>
+                            </div>
+                            
+                            <!-- GRUPO NSFW (Exclusivo para waifu.im) -->
+                            <div class="category-group" id="nsfwCategoryGroup" style="display: none;">
+                                <h4 class="group-title" style="color: var(--secondary);">Contenido Adulto (NSFW)</h4>
+                                <div class="group-buttons">
+                                    <button class="cat-btn" data-category="hentai" data-providers="nsfw"><i data-lucide="heart"></i> Hentai (18+)</button>
+                                    <button class="cat-btn" data-category="ero" data-providers="nsfw"><i data-lucide="star"></i> Ero (18+)</button>
+                                    <button class="cat-btn" data-category="ecchi" data-providers="nsfw"><i data-lucide="sparkles"></i> Ecchi (18+)</button>
+                                    <button class="cat-btn" data-category="oppai" data-providers="nsfw"><i data-lucide="circle-dot"></i> Oppai (18+)</button>
+                                    <button class="cat-btn" data-category="maid" data-providers="nsfw"><i data-lucide="user"></i> Maid (18+)</button>
+                                    <button class="cat-btn" data-category="ass" data-providers="nsfw"><i data-lucide="heart"></i> Ass (18+)</button>
+                                    <button class="cat-btn" data-category="milf" data-providers="nsfw"><i data-lucide="users"></i> Milf (18+)</button>
+                                    <button class="cat-btn" data-category="oral" data-providers="nsfw"><i data-lucide="zap"></i> Oral (18+)</button>
+                                    <button class="cat-btn" data-category="paizuri" data-providers="nsfw"><i data-lucide="heart-handshake"></i> Paizuri (18+)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <!-- Área de visualización de imágenes -->
+                    <div class="viewer-container">
+                        <!-- Panel de controles superior -->
+                        <div class="viewer-actions-top">
+                            <div class="active-tag">
+                                <span class="tag-label">Categoría activa:</span>
+                                <span class="tag-value" id="currentCategoryName">Neko</span>
+                            </div>
+                            <button class="btn btn-primary" id="btnRandom">
+                                <i data-lucide="shuffle"></i> Aleatorio total
+                            </button>
+                        </div>
+
+                        <!-- Caja del visor con glassmorphism -->
+                        <div class="image-card glass-panel">
+                            <!-- Insignia de créditos del artista (Flotante superior izquierda) -->
+                            <div class="artist-credit-badge" id="artistCredit" style="display: none;">
+                                <i data-lucide="palette" class="credit-icon"></i>
+                                <span>Artista: <a href="#" id="artistLink" target="_blank" rel="noopener">Cargando...</a></span>
+                            </div>
+
+                            <!-- Skeleton loader animado -->
+                            <div class="skeleton-loader" id="imageSkeleton">
+                                <div class="skeleton-pulse"></div>
+                                <div class="skeleton-icon"><i data-lucide="image" class="pulse-icon"></i></div>
+                                <span class="skeleton-text">Cargando ilustración...</span>
+                            </div>
+
+                            <!-- Contenedor de la imagen -->
+                            <div class="image-wrapper">
+                                <img id="displayImage" src="" alt="Ilustración Anime de Nekos.life" style="display: none;">
+                            </div>
+
+                            <!-- Barra de control sobre la imagen (flotante / inferior) -->
+                            <div class="image-controls" id="imageControls" style="opacity: 0; pointer-events: none;">
+                                <button class="control-btn" id="btnFav" aria-label="Añadir a favoritos">
+                                    <i data-lucide="heart" class="heart-icon"></i>
+                                </button>
+                                <button class="control-btn" id="btnCopy" aria-label="Copiar enlace de imagen">
+                                    <i data-lucide="copy"></i>
+                                </button>
+                                <button class="control-btn" id="btnDownload" aria-label="Descargar imagen">
+                                    <i data-lucide="download"></i>
+                                </button>
+                                <button class="control-btn" id="btnFullscreen" aria-label="Pantalla completa">
+                                    <i data-lucide="maximize-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botón principal para cargar otra de la misma categoría -->
+                        <div class="viewer-footer">
+                            <button class="btn btn-secondary btn-large" id="btnNext">
+                                <i data-lucide="refresh-cw"></i> Cargar otra de esta categoría
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 2: FAVORITOS -->
+            <section id="favorites-section" class="app-section">
+                <div class="section-header">
+                    <h2>Tus <span class="gradient-text">Favoritos</span></h2>
+                    <p class="section-subtitle">Imágenes guardadas localmente en este dispositivo.</p>
+                </div>
+                
+                <div class="favs-empty-state" id="favsEmptyState">
+                    <i data-lucide="heart" class="empty-icon"></i>
+                    <h3>No tienes favoritos todavía</h3>
+                    <p>Explora la galería y haz clic en el corazón para guardar tus imágenes favoritas aquí.</p>
+                    <button class="btn btn-primary" onclick="document.querySelector('[data-target=gallery-section]').click()">
+                        Ir a explorar
+                    </button>
+                </div>
+
+                <div class="favs-grid" id="favsGrid" style="display: none;">
+                    <!-- Insertado dinámicamente mediante JS -->
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: UTILIDADES DE TEXTO -->
+            <section id="text-section" class="app-section">
+                <div class="section-header">
+                    <h2>Utilidades de <span class="gradient-text">Texto</span></h2>
+                    <p class="section-subtitle">Experimenta con las funciones interactivas adicionales que ofrece la API de Nekos.life.</p>
+                </div>
+
+                <div class="utilities-grid">
+                    <!-- Herramienta 1: OwOifier -->
+                    <div class="util-card glass-panel">
+                        <div class="util-card-header">
+                            <i data-lucide="sparkles" class="util-icon"></i>
+                            <h3>OwOify Texto</h3>
+                        </div>
+                        <p class="util-desc">Transforma tus oraciones normales en un dialecto super tierno (OwO/UwU) de manera divertida.</p>
+                        <div class="util-body">
+                            <textarea id="owoInput" placeholder="Escribe algo aquí para traducirlo..." rows="3"></textarea>
+                            <button class="btn btn-primary" id="btnOwoify">OwOificar!</button>
+                            <div class="util-result" id="owoResult" style="display: none;">
+                                <div class="result-header">
+                                    <span>Resultado:</span>
+                                    <button class="copy-result-btn" id="btnCopyOwo" title="Copiar"><i data-lucide="copy"></i></button>
+                                </div>
+                                <p class="result-text" id="owoResultText"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Herramienta 2: Magic 8Ball -->
+                    <div class="util-card glass-panel">
+                        <div class="util-card-header">
+                            <i data-lucide="help-circle" class="util-icon"></i>
+                            <h3>Bola 8 Mágica</h3>
+                        </div>
+                        <p class="util-desc">Hazle una pregunta sobre tu destino y la bola 8 mística te dará una respuesta.</p>
+                        <div class="util-body">
+                            <div class="input-group">
+                                <input type="text" id="ballQuestion" placeholder="¿Encontraré mi waifu ideal?" />
+                                <button class="btn btn-primary" id="btn8Ball">Preguntar</button>
+                            </div>
+                            <div class="ball-visual-container">
+                                <div class="magic-8ball" id="magic8BallGraphic">
+                                    <div class="inner-window">
+                                        <span id="ballAnswer">8</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Herramientas Rápidas: Datos y Preguntas -->
+                    <div class="util-card glass-panel">
+                        <div class="util-card-header">
+                            <i data-lucide="brain" class="util-icon"></i>
+                            <h3>Generadores de Frases</h3>
+                        </div>
+                        <p class="util-desc">Consulta datos curiosos o preguntas aleatorias existenciales proporcionadas por la API.</p>
+                        <div class="util-body">
+                            <div class="flex-row-buttons">
+                                <button class="btn btn-secondary" id="btnFact"><i data-lucide="lightbulb"></i> Dato Curioso</button>
+                                <button class="btn btn-secondary" id="btnWhy"><i data-lucide="help-circle"></i> ¿Por qué...?</button>
+                            </div>
+                            <div class="util-result" id="phraseResult" style="display: none;">
+                                <div class="result-header">
+                                    <span id="phraseType">Dato curioso:</span>
+                                    <button class="copy-result-btn" id="btnCopyPhrase" title="Copiar"><i data-lucide="copy"></i></button>
+                                </div>
+                                <p class="result-text" id="phraseResultText"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 4: INFORMACIÓN -->
+            <section id="about-section" class="app-section">
+                <div class="about-container glass-panel">
+                    <div class="about-header">
+                        <i data-lucide="sparkles" class="about-logo-icon"></i>
+                        <h2>NekoExplorer v1.0</h2>
+                        <p>Una ventana premium al arte anime y las interacciones sociales digitales.</p>
+                    </div>
+                    <hr class="divider">
+                    <div class="about-body">
+                        <h3>¿Qué es NekoExplorer?</h3>
+                        <p>Esta aplicación es una interfaz de usuario de una sola página (SPA) moderna y estilizada diseñada para interactuar con la conocida API pública de <strong>Nekos.life</strong>. Permite explorar imágenes temáticas de alta calidad de personajes de anime, así como gifs interactivos para redes sociales (abrazar, acariciar, saludar, etc.).</p>
+                        
+                        <h3>Características Principales:</h3>
+                        <ul>
+                            <li><strong>Filtrado Completo:</strong> Explora más de 20 categorías divididas entre gifs de reacción, ilustraciones de personajes y animales.</li>
+                            <li><strong>Favoritos:</strong> Guarda tus ilustraciones favoritas localmente sin necesidad de registrar una cuenta. Se almacenan de forma segura en tu navegador.</li>
+                            <li><strong>Herramientas Integradas:</strong> Descarga y comparte enlaces con un solo clic.</li>
+                            <li><strong>Juegos de Texto:</strong> Traduce texto con el traductor OwOify o pregúntale a la Bola 8 de la API.</li>
+                        </ul>
+
+                        <h3>Sobre los Proveedores:</h3>
+                        <p>Los recursos provienen directamente de las APIs públicas de <a href="https://github.com/Nekos-life/nekos-dot-life" target="_blank" rel="noopener">Nekos.life</a>, <a href="https://nekos.best" target="_blank" rel="noopener">nekos.best</a> y <a href="https://waifu.im" target="_blank" rel="noopener">waifu.im</a>. El contenido es apto para todo público (SFW) por defecto, con soporte de ilustraciones adultas (NSFW) de forma opcional y controlada para uso legítimo a través de waifu.im.</p>
+                    </div>
+                    <div class="about-footer">
+                        <p>© 2026 NekoExplorer. Creado con fines de demostración de diseño premium.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Visor de pantalla completa (Lightbox) -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose" aria-label="Cerrar pantalla completa">
+            <i data-lucide="x"></i>
+        </button>
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="Vista ampliada">
+        </div>
+        <div class="lightbox-actions">
+            <button class="btn btn-primary" id="lightboxDownload"><i data-lucide="download"></i> Descargar</button>
+            <button class="btn btn-secondary" id="lightboxCopy"><i data-lucide="copy"></i> Copiar Enlace</button>
+        </div>
+    </div>
+
+    <!-- Contenedor de notificaciones Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal de confirmación de edad (Age Gate) -->
+    <div class="lightbox age-gate-modal" id="ageGateModal" style="display: none;">
+        <div class="age-gate-container glass-panel">
+            <i data-lucide="alert-triangle" class="age-gate-icon"></i>
+            <h2>Confirmación de Edad</h2>
+            <p>Esta sección contiene ilustraciones explícitas para adultos y está destinada únicamente a un uso legítimo. ¿Confirmas que eres mayor de edad (18+) y deseas habilitar este contenido?</p>
+            <div class="age-gate-buttons">
+                <button class="btn btn-secondary" id="btnCancelAge">Cancelar</button>
+                <button class="btn btn-primary" id="btnConfirmAge">Confirmar (Entrar)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
