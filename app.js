@@ -282,11 +282,19 @@ function filterCategoriesByProvider() {
     const reactionsSfwGroup = document.getElementById('reactionsSfwGroup');
     const charactersSfwGroup = document.getElementById('charactersSfwGroup');
     const nsfwCategoryGroup = document.getElementById('nsfwCategoryGroup');
+    const e621Group = document.getElementById('e621CategoryGroup');
     
     categoryButtons.forEach(btn => {
         const allowed = btn.getAttribute('data-providers');
         
-        if (isNsfw) {
+        if (provider === 'e621') {
+            if (allowed === 'e621') {
+                btn.style.display = 'flex';
+            } else {
+                btn.style.display = 'none';
+                if (btn.classList.contains('active')) btn.classList.remove('active');
+            }
+        } else if (isNsfw) {
             // Si estamos en modo NSFW, solo se muestran los botones que pertenecen al proveedor 'nsfw'
             // Y solo si el proveedor activo es waifu.im
             if (allowed === 'nsfw' && provider === 'waifu.im') {
@@ -310,11 +318,18 @@ function filterCategoriesByProvider() {
     });
 
     // Controlar visibilidad de grupos completos del sidebar
-    if (isNsfw) {
+    if (provider === 'e621') {
+        if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
+        if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
+        if (otherGroup) otherGroup.style.display = 'none';
+        if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
+        if (e621Group) e621Group.style.display = 'block';
+    } else if (isNsfw) {
         if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
         if (otherGroup) otherGroup.style.display = 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'block';
+        if (e621Group) e621Group.style.display = 'none';
     } else {
         if (reactionsSfwGroup) {
             reactionsSfwGroup.style.display = provider === 'waifu.im' ? 'none' : 'block';
@@ -322,6 +337,7 @@ function filterCategoriesByProvider() {
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'block';
         if (otherGroup) otherGroup.style.display = provider === 'nekos.life' ? 'block' : 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
+        if (e621Group) e621Group.style.display = 'none';
     }
 
     // Garantizar que la categoría activa en el estado sea compatible y esté visible
@@ -351,7 +367,7 @@ async function switchProvider(providerName) {
     
     // Si el usuario selecciona Nekos.life o nekos.best, pero estaba en modo NSFW,
     // debemos apagar el modo NSFW porque no lo soportan.
-    if (state.isNsfw && providerName !== 'waifu.im') {
+    if (state.isNsfw && providerName !== 'waifu.im' && providerName !== 'e621') {
         const nsfwToggle = document.getElementById('nsfwToggle');
         if (nsfwToggle) nsfwToggle.checked = false;
         state.isNsfw = false;
@@ -391,7 +407,12 @@ async function switchProvider(providerName) {
 // Nueva función para actualizar dinámicamente el título
 function updatePageTitle() {
     const providerName = state.currentProvider;
-    const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : 'waifu.im');
+    let friendlyName = providerName;
+    if (providerName === 'nekos.life') friendlyName = 'Nekos.life';
+    else if (providerName === 'nekos.best') friendlyName = 'nekos.best';
+    else if (providerName === 'waifu.im') friendlyName = 'waifu.im';
+    else if (providerName === 'e621') friendlyName = 'e621 / e926';
+    
     document.title = `NekoExplorer - Explorador Premium de ${friendlyName}`;
 }
 
@@ -401,7 +422,7 @@ async function toggleNsfwMode(isOn) {
     
     // Autoconmutación de proveedor:
     // nekos.life y nekos.best no soportan NSFW. Si se activa, forzar cambio a waifu.im.
-    if (isOn && state.currentProvider !== 'waifu.im') {
+    if (isOn && state.currentProvider !== 'waifu.im' && state.currentProvider !== 'e621') {
         state.currentProvider = 'waifu.im';
         const providerSelect = document.getElementById('providerSelect');
         if (providerSelect) providerSelect.value = 'waifu.im';
@@ -470,7 +491,9 @@ async function loadActiveCategoryImage() {
         const provider = state.currentProvider;
         const isNsfw = state.isNsfw;
         
-        if (provider === 'nekos.life') {
+        if (provider === 'e621') {
+            fetchUrl = `/api/e621?tags=${state.currentCategory}&nsfw=${isNsfw}`;
+        } else if (provider === 'nekos.life') {
             fetchUrl = `${API_BASE_URL}/img/${state.currentCategory}`;
         } else if (provider === 'nekos.best') {
             const apiCategory = (state.currentCategory === 'fox_girl') ? 'kitsune' : state.currentCategory;
@@ -488,7 +511,13 @@ async function loadActiveCategoryImage() {
         let artistName = '';
         let artistHref = '';
         
-        if (provider === 'nekos.life') {
+        if (provider === 'e621') {
+            if (!data.url) throw new Error('No se encontró imagen de e621 válida');
+            imageUrl = data.url;
+            artistName = data.artist;
+            artistHref = data.artist_url;
+            if (artistCredit) artistCredit.style.display = 'flex';
+        } else if (provider === 'nekos.life') {
             if (!data.url) throw new Error('No se encontró la URL de la ilustración');
             imageUrl = data.url;
         } else if (provider === 'waifu.im') {
