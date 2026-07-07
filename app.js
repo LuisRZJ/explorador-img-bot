@@ -79,7 +79,9 @@ function isFavoriteDB(url) {
 }
 
 const BEST_BASE_URL = 'https://nekos.best/api/v2';
-const IM_BASE_URL = 'https://api.waifu.im/search';
+// Proxy Vercel Serverless Function — evita el bloqueo CORS/Cloudflare Challenge
+// En desarrollo local usa la URL directa como fallback
+const IM_BASE_URL = '/api/waifu';
 
 // Estado de la aplicación
 const state = {
