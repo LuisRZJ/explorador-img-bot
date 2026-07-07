@@ -1351,14 +1351,13 @@ a:hover {
         flex-direction: column;
         width: 100%;
         position: absolute;
-        top: 100%;
+        top: calc(100% + 8px); /* Separación visual del header */
         left: 0;
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid var(--border-glass);
-        border-top: none;
-        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        border-radius: var(--radius-md); /* Bordes redondeados en todas las esquinas */
         padding: 16px;
         gap: 12px;
         box-shadow: var(--shadow-premium);
