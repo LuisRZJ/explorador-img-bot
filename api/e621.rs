@@ -1,144 +1,163 @@
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, ACCEPT};
-use rand::seq::SliceRandom;
+use vercel_runtime::{run, service_fn, Error, Request, Response};
 use serde_json::{json, Value};
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
-use url::Url;
-use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    run(handler).await
+    run(service_fn(handler)).await
 }
 
-pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
+fn json_response(status: u16, body: Value) -> Result<Response<String>, Error> {
+    Ok(Response::builder()
+        .status(status)
+        .header("Content-Type", "application/json")
+        .header("Access-Control-Allow-Origin", "*")
+        .header("Access-Control-Allow-Methods", "GET, OPTIONS")
+        .header("Access-Control-Allow-Headers", "Content-Type")
+        .body(body.to_string())?)
+}
+
+async fn handler(req: Request) -> Result<Response<String>, Error> {
     // CORS Preflight
     if req.method() == "OPTIONS" {
-        return Ok(Response::builder()
-            .status(StatusCode::OK)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Access-Control-Allow-Methods", "GET, OPTIONS")
-            .header("Access-Control-Allow-Headers", "Content-Type")
-            .body(Body::Empty)?);
+        return json_response(200, json!({}));
     }
 
-    // Parse query string
-    let parsed_url = Url::parse(&req.uri().to_string()).unwrap_or_else(|_| Url::parse("http://localhost/").unwrap());
-    let query: HashMap<_, _> = parsed_url.query_pairs().into_owned().collect();
-    
-    let tags = query.get("tags").map(|s| s.as_str()).unwrap_or("");
-    let nsfw = query.get("nsfw").map(|s| s.as_str()).unwrap_or("false");
-    
+    // Extraer query string de la URI (sin crate externo)
+    let uri = req.uri().to_string();
+    let query_str = uri.split('?').nth(1).unwrap_or("");
+
+    let mut tags = "";
+    let mut nsfw = "false";
+    for pair in query_str.split('&') {
+        let mut kv = pair.splitn(2, '=');
+        match (kv.next(), kv.next()) {
+            (Some("tags"), Some(v)) => tags = v,
+            (Some("nsfw"), Some(v)) => nsfw = v,
+            _ => {}
+        }
+    }
+
     let is_nsfw = nsfw == "true";
     let domain = if is_nsfw { "e621.net" } else { "e926.net" };
-    
-    let mut search_tags = tags.to_string();
-    if !is_nsfw {
-        search_tags.push_str(" rating:safe");
-    }
-    
-    let encoded_tags = urlencoding::encode(&search_tags);
+
+    // Decodificar %20/+ en espacios y añadir filtro de rating en modo SFW
+    let tags_decoded = tags.replace("%20", " ").replace('+', " ");
+    let search_tags = if is_nsfw {
+        tags_decoded.clone()
+    } else {
+        format!("{} rating:safe", tags_decoded)
+    };
+
+    let encoded_tags = search_tags.replace(' ', "+");
     let target_url = format!("https://{}/posts.json?tags={}&limit=50", domain, encoded_tags);
 
-    // Setup HTTP client con el mismo User-Agent para intentar evadir el Cloudflare IP block
-    let mut headers = HeaderMap::new();
-    headers.insert(USER_AGENT, HeaderValue::from_static("NekoExplorer/1.0 (by LuisRZJ on e621)"));
-    headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
-
-    let client_result = reqwest::Client::builder()
-        .default_headers(headers)
-        .build();
-        
-    let client = match client_result {
+    // Cliente HTTP con el User-Agent que requiere e621 en su política de acceso
+    let client = match reqwest::Client::builder()
+        .user_agent("NekoExplorer/1.0 (by LuisRZJ on e621)")
+        .build()
+    {
         Ok(c) => c,
         Err(e) => {
-             return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Content-Type", "application/json")
-                .body(Body::Text(json!({ "error": format!("Error creando reqwest client: {}", e) }).to_string()))?);
+            return json_response(500, json!({
+                "error": format!("Error construyendo el cliente HTTP: {}", e)
+            }));
         }
     };
 
-    // Make request
-    let resp = client.get(&target_url).send().await;
-    
-    let response = match resp {
+    let resp = match client
+        .get(&target_url)
+        .header("Accept", "application/json")
+        .send()
+        .await
+    {
         Ok(r) => r,
         Err(e) => {
-            return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .header("Access-Control-Allow-Origin", "*")
-                .header("Content-Type", "application/json")
-                .body(Body::Text(json!({ "error": format!("Error de red al conectar con e621: {}", e) }).to_string()))?);
+            return json_response(500, json!({
+                "error": format!("Error de red al conectar con {}: {}", domain, e)
+            }));
         }
     };
 
-    if !response.status().is_success() {
-        let status = response.status();
-        let text = response.text().await.unwrap_or_default();
-        return Ok(Response::builder()
-            .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Content-Type", "application/json")
-            .body(Body::Text(json!({ "error": format!("Error de {}: {} {}", domain, status, text) }).to_string()))?);
+    if !resp.status().is_success() {
+        let status_code = resp.status().as_u16();
+        let body_text = resp.text().await.unwrap_or_default();
+        let short_error = if body_text.starts_with('<') {
+            // Cloudflare devuelve páginas HTML — no las reenviamos completas
+            format!("Cloudflare bloqueó la petición (HTTP {}). Inténtalo más tarde.", status_code)
+        } else {
+            let truncated = &body_text[..body_text.len().min(200)];
+            format!("Error de {} (HTTP {}): {}", domain, status_code, truncated)
+        };
+        return json_response(500, json!({ "error": short_error }));
     }
 
-    let json_data: Value = response.json().await?;
-    let posts = json_data.get("posts").and_then(|p| p.as_array());
-    
-    if posts.is_none() || posts.unwrap().is_empty() {
-        return Ok(Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Content-Type", "application/json")
-            .body(Body::Text(json!({ "error": "No se encontraron imágenes para esta categoría." }).to_string()))?);
-    }
-
-    let posts = posts.unwrap();
-    let valid_posts: Vec<&Value> = posts.iter().filter(|p| {
-        if let Some(file) = p.get("file") {
-            if let Some(url) = file.get("url") {
-                if !url.is_null() {
-                    if let Some(ext) = file.get("ext").and_then(|e| e.as_str()) {
-                        return ext == "jpg" || ext == "png" || ext == "gif";
-                    }
-                }
-            }
+    let json_data: Value = match resp.json().await {
+        Ok(v) => v,
+        Err(e) => {
+            return json_response(500, json!({
+                "error": format!("Error al parsear la respuesta JSON de {}: {}", domain, e)
+            }));
         }
-        false
-    }).collect();
+    };
+
+    let posts = match json_data.get("posts").and_then(|p| p.as_array()) {
+        Some(p) if !p.is_empty() => p,
+        _ => {
+            return json_response(404, json!({
+                "error": "No se encontraron imágenes para esta categoría."
+            }));
+        }
+    };
+
+    // Filtrar solo posts con imagen de tipo jpg/png/gif y URL no nula
+    let valid_posts: Vec<&Value> = posts
+        .iter()
+        .filter(|p| {
+            p.get("file")
+                .and_then(|f| f.get("url"))
+                .map(|u| !u.is_null())
+                .unwrap_or(false)
+                && p.get("file")
+                    .and_then(|f| f.get("ext"))
+                    .and_then(|e| e.as_str())
+                    .map(|ext| matches!(ext, "jpg" | "png" | "gif"))
+                    .unwrap_or(false)
+        })
+        .collect();
 
     if valid_posts.is_empty() {
-        return Ok(Response::builder()
-            .status(StatusCode::NOT_FOUND)
-            .header("Access-Control-Allow-Origin", "*")
-            .header("Content-Type", "application/json")
-            .body(Body::Text(json!({ "error": "No se encontraron imágenes válidas." }).to_string()))?);
+        return json_response(404, json!({
+            "error": "No se encontraron imágenes estáticas válidas (solo había vídeos webm/swf)."
+        }));
     }
 
-    let mut rng = rand::thread_rng();
-    let random_post = valid_posts.choose(&mut rng).unwrap();
-    
-    let url = random_post["file"]["url"].as_str().unwrap_or("");
-    
-    let mut artist = "Artista Desconocido".to_string();
-    if let Some(tags) = random_post.get("tags") {
-        if let Some(artists) = tags.get("artist").and_then(|a| a.as_array()) {
-            if !artists.is_empty() {
-                artist = artists[0].as_str().unwrap_or("Artista Desconocido").to_string();
-            }
-        }
-    }
+    // Selección pseudo-aleatoria usando los nanosegundos del reloj del sistema
+    let idx = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.subsec_nanos() as usize)
+        .unwrap_or(0)
+        % valid_posts.len();
 
-    let artist_url = format!("https://{}/posts?tags={}", domain, urlencoding::encode(&artist));
+    let post = valid_posts[idx];
+    let image_url = post["file"]["url"].as_str().unwrap_or("");
 
-    Ok(Response::builder()
-        .status(StatusCode::OK)
-        .header("Access-Control-Allow-Origin", "*")
-        .header("Content-Type", "application/json")
-        .body(Body::Text(json!({
-            "url": url,
-            "artist": artist,
-            "artist_url": artist_url
-        }).to_string()))?)
+    let artist = post
+        .get("tags")
+        .and_then(|t| t.get("artist"))
+        .and_then(|a| a.as_array())
+        .and_then(|a| a.first())
+        .and_then(|a| a.as_str())
+        .unwrap_or("Artista Desconocido");
+
+    let artist_url = format!(
+        "https://{}/posts?tags={}",
+        domain,
+        artist.replace(' ', "+")
+    );
+
+    json_response(200, json!({
+        "url": image_url,
+        "artist": artist,
+        "artist_url": artist_url
+    }))
 }
