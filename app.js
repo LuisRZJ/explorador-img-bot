@@ -256,6 +256,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Actualizar contador de favoritos en la interfaz
     updateFavoritesBadge();
+
+    // Actualizar año dinámico en el footer
+    const currentYearEl = document.getElementById('currentYear');
+    if (currentYearEl) {
+        currentYearEl.textContent = new Date().getFullYear();
+    }
 });
 
 // ==========================================================================
