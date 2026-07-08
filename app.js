@@ -1083,20 +1083,46 @@ function setupTextUtilities() {
     // 3. FACT & WHY
     async function fetchPhrase(endpoint, title) {
         phraseResult.style.display = 'none';
+        const btn = endpoint === 'fact' ? btnFact : btnWhy;
+        const originalText = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader" class="pulse-icon"></i> Generando...';
+        lucide.createIcons();
         
         try {
+            // 1. Obtener frase en inglés original
             const res = await fetch(`${API_BASE_URL}/${endpoint}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
+            const englishText = endpoint === 'fact' ? data.fact : data.why;
             
-            const textContent = endpoint === 'fact' ? data.fact : data.why;
+            // 2. Intentar traducirla con Gemma en Google AI Studio
+            let finalTranslation = englishText;
+            try {
+                const transRes = await fetch(`/api/translate?text=${encodeURIComponent(englishText)}`);
+                if (transRes.ok) {
+                    const transData = await transRes.json();
+                    if (transData.translation) {
+                        finalTranslation = transData.translation;
+                    }
+                } else {
+                    console.warn('[Traductor] Vercel proxy retornó error. Fallback al inglés original.');
+                }
+            } catch (err) {
+                console.error('[Traductor] Error al conectar con /api/translate:', err);
+            }
             
             phraseType.textContent = title;
-            phraseResultText.textContent = textContent;
+            phraseResultText.textContent = finalTranslation;
             phraseResult.style.display = 'block';
             
         } catch {
             showToast('Error al obtener la frase.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            lucide.createIcons();
         }
     }
 
