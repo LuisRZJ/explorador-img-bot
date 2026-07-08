@@ -1,5 +1,6 @@
 // /api/translate.js — Vercel Serverless Function para traducir usando modelos Gemma de Google AI Studio
 // Utiliza gemma-4-31b-it como modelo principal, con fallbacks a gemma-2-27b-it y gemma-2-9b-it para asegurar disponibilidad.
+// Emplea Structured JSON Output mediante responseSchema para evitar la filtración de la cadena de pensamiento (Chain of Thought).
 
 export default async function handler(req, res) {
     // Cabeceras CORS
@@ -28,7 +29,13 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Configuración incompleta: GEMINI_API_KEY ausente.' });
     }
 
-    const prompt = `Traduce el siguiente texto al español manteniendo su tono original (sea informativo, curioso o reflexivo). Responde ÚNICAMENTE con la traducción limpia, sin comillas adicionales al principio o al final, sin introducciones y sin explicaciones:\n\n"${text.trim()}"`;
+    // Prompt adaptado para exigir el JSON con la traducción limpia
+    const prompt = `Traduce el siguiente texto al español manteniendo su tono original (sea informativo, curioso o reflexivo).
+Devuelve el resultado en formato JSON estructurado según el esquema solicitado.
+El campo "translation" debe contener únicamente la traducción final, sin comillas externas adicionales, sin explicaciones ni rodeos.
+
+Texto original a traducir:
+"${text.trim()}"`;
 
     const payload = {
         contents: [
@@ -37,7 +44,20 @@ export default async function handler(req, res) {
                     { text: prompt }
                 ]
             }
-        ]
+        ],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: "OBJECT",
+                properties: {
+                    translation: {
+                        type: "STRING",
+                        description: "La traducción limpia y directa al español sin notas explicativas."
+                    }
+                },
+                required: ["translation"]
+            }
+        }
     };
 
     // Cascada de modelos Gemma (del más potente de la capa gratuita a los más eficientes)
@@ -58,9 +78,18 @@ export default async function handler(req, res) {
             if (response.ok) {
                 const data = await response.json();
                 if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
-                    let translation = data.candidates[0].content.parts[0].text.trim();
+                    const rawText = data.candidates[0].content.parts[0].text.trim();
                     
-                    // Limpieza opcional de comillas que el modelo pueda haber agregado a pesar del prompt
+                    let translation = "";
+                    try {
+                        const parsed = JSON.parse(rawText);
+                        translation = (parsed.translation || "").trim();
+                    } catch (jsonErr) {
+                        console.warn('[Traductor] La respuesta del modelo no es un JSON válido. Reintentando extracción simple.', jsonErr);
+                        translation = rawText;
+                    }
+
+                    // Limpieza final de comillas redundantes
                     if (translation.startsWith('"') && translation.endsWith('"')) {
                         translation = translation.slice(1, -1).trim();
                     }
