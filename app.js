@@ -1033,7 +1033,7 @@ function setupTextUtilities() {
         lucide.createIcons();
         
         try {
-            const res = await fetch(`${API_BASE_URL}/owoify?text=${encodeURIComponent(text)}`);
+            const res = await fetch(`/api/owoify?text=${encodeURIComponent(text)}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
             
@@ -1065,7 +1065,7 @@ function setupTextUtilities() {
         ballAnswer.style.opacity = '0';
         
         try {
-            const res = await fetch(`${API_BASE_URL}/8ball`);
+            const res = await fetch(`/api/8ball`);
             if (!res.ok) throw new Error();
             const data = await res.json();
             
@@ -1097,30 +1097,14 @@ function setupTextUtilities() {
         lucide.createIcons();
         
         try {
-            // 1. Obtener frase en inglés original
-            const res = await fetch(`${API_BASE_URL}/${endpoint}`);
+            // Obtener frase ya traducida directamente de nuestra API
+            const res = await fetch(`/api/${endpoint}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
-            const englishText = endpoint === 'fact' ? data.fact : data.why;
-            
-            // 2. Intentar traducirla con Gemma en Google AI Studio
-            let finalTranslation = englishText;
-            try {
-                const transRes = await fetch(`/api/translate?text=${encodeURIComponent(englishText)}`);
-                if (transRes.ok) {
-                    const transData = await transRes.json();
-                    if (transData.translation) {
-                        finalTranslation = transData.translation;
-                    }
-                } else {
-                    console.warn('[Traductor] Vercel proxy retornó error. Fallback al inglés original.');
-                }
-            } catch (err) {
-                console.error('[Traductor] Error al conectar con /api/translate:', err);
-            }
+            const translatedText = endpoint === 'fact' ? data.fact : data.why;
             
             phraseType.textContent = title;
-            phraseResultText.textContent = finalTranslation;
+            phraseResultText.textContent = translatedText || 'No se obtuvo respuesta';
             phraseResult.style.display = 'block';
             
         } catch {
