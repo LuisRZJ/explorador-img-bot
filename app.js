@@ -250,6 +250,10 @@ function setupCategories() {
             // Actualizar interfaz
             currentCategoryName.textContent = btn.textContent.trim();
             
+            // Limpiar input de búsqueda de e621
+            const tagInput = document.getElementById('e621TagInput');
+            if (tagInput) tagInput.value = '';
+
             // Cargar imagen
             loadActiveCategoryImage();
             
@@ -421,15 +425,16 @@ async function switchProvider(providerName) {
     // Filtrar visualmente las categorías compatibles
     filterCategoriesByProvider();
     
-    // Verificar si la categoría actual sigue siendo compatible
+    // Limpiar clases active
+    document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+
     const activeBtn = document.querySelector(`.cat-btn[data-category="${state.currentCategory}"]`);
     const isCompatible = activeBtn && (activeBtn.style.display !== 'none');
-    
+
     if (!isCompatible) {
         // Seleccionar la primera categoría compatible disponible en el sidebar
         const firstVisibleBtn = document.querySelector('.cat-btn:not([style*="display: none"])');
         if (firstVisibleBtn) {
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
             firstVisibleBtn.classList.add('active');
             state.currentCategory = firstVisibleBtn.getAttribute('data-category');
             document.getElementById('currentCategoryName').textContent = firstVisibleBtn.textContent.trim();
@@ -437,6 +442,10 @@ async function switchProvider(providerName) {
     } else if (activeBtn) {
         activeBtn.classList.add('active');
     }
+
+    // Limpiar input de búsqueda manual
+    const tagInput = document.getElementById('e621TagInput');
+    if (tagInput) tagInput.value = '';
     
     // Recargar la imagen
     loadActiveCategoryImage();
@@ -1048,7 +1057,15 @@ function renderE621Recents() {
     // Limpiar usando textContent / manipulación DOM (jamás innerHTML con datos de usuario)
     container.textContent = '';
 
-    const recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+    let recents = [];
+    try {
+        recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+        if (!Array.isArray(recents)) {
+            recents = [];
+        }
+    } catch (e) {
+        recents = [];
+    }
     if (recents.length === 0) return;
 
     recents.forEach(tag => {
@@ -1092,7 +1109,15 @@ function renderE621Recents() {
  */
 function saveE621Recent(tag) {
     if (!tag) return;
-    let recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+    let recents = [];
+    try {
+        recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+        if (!Array.isArray(recents)) {
+            recents = [];
+        }
+    } catch (e) {
+        recents = [];
+    }
     // Eliminar si ya existía (para moverlo al frente)
     recents = recents.filter(t => t !== tag);
     recents.unshift(tag);
