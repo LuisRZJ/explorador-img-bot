@@ -449,24 +449,25 @@
                 <div class="about-container glass-panel">
                     <div class="about-header">
                         <i data-lucide="sparkles" class="about-logo-icon"></i>
-                        <h2>NekoExplorer v1.0</h2>
-                        <p>Una ventana premium al arte anime y las interacciones sociales digitales.</p>
+                        <h2>NekoExplorer v2.0</h2>
+                        <p>Una suite premium avanzada de visualización anime, fur y utilidades de IA.</p>
                     </div>
                     <hr class="divider">
                     <div class="about-body">
-                        <h3>¿Qué es NekoExplorer?</h3>
-                        <p>Esta aplicación es una interfaz de usuario de una sola página (SPA) moderna y estilizada diseñada para interactuar con la conocida API pública de <strong>Nekos.life</strong>. Permite explorar imágenes temáticas de alta calidad de personajes de anime, así como gifs interactivos para redes sociales (abrazar, acariciar, saludar, etc.).</p>
+                        <h3>¿Qué es NekoExplorer v2.0?</h3>
+                        <p>Esta aplicación es una interfaz de usuario de una sola página (SPA) moderna, rápida y estilizada diseñada para interactuar con múltiples APIs públicas de arte anime, fur y utilidades de texto. Esta nueva versión incorpora procesamiento distribuido en la nube, almacenamiento estructurado y traducción inteligente.</p>
                         
-                        <h3>Características Principales:</h3>
+                        <h3>Características y Capacidades Reales:</h3>
                         <ul>
-                            <li><strong>Filtrado Completo:</strong> Explora más de 20 categorías divididas entre gifs de reacción, ilustraciones de personajes y animales.</li>
-                            <li><strong>Favoritos:</strong> Guarda tus ilustraciones favoritas localmente sin necesidad de registrar una cuenta. Se almacenan de forma segura en tu navegador.</li>
-                            <li><strong>Herramientas Integradas:</strong> Descarga y comparte enlaces con un solo clic.</li>
-                            <li><strong>Juegos de Texto:</strong> Traduce texto con el traductor OwOify o pregúntale a la Bola 8 de la API.</li>
+                            <li><strong>Integración Multiproveedor:</strong> Conexión fluida con <strong>Nekos.life</strong>, <strong>nekos.best</strong>, <strong>waifu.im</strong>, <strong>NekoBot.xyz</strong> y <strong>e621 / e926 (Furry)</strong>.</li>
+                            <li><strong>Almacenamiento Local Robusto (IndexedDB):</strong> Utiliza bases de datos locales indexadas en el navegador en lugar de almacenamiento simple de cookies o LocalStorage. Esto permite gestionar tu colección de favoritos de forma ilimitada y guardar un historial de búsquedas recientes cronológico.</li>
+                            <li><strong>Búsqueda por Etiquetas Sanitizada:</strong> Campo de búsqueda manual exclusivo para e621 que permite consultar etiquetas libres con algoritmos de sanitización estrictos contra inyecciones de código (XSS/HTML).</li>
+                            <li><strong>Traducción por IA en Tiempo Real (Gemma):</strong> El generador de frases curiosas y existenciales utiliza Serverless Functions de Vercel y la API de Google AI Studio, enviando peticiones en cascada al potente modelo de lenguaje <strong>Gemma 4 (gemma-4-31b-it)</strong> para traducirlas instantáneamente al español con formato estructurado JSON.</li>
+                            <li><strong>Gestión NSFW y Control de Edad:</strong> Filtros de edad (Age Gate) interactivos y un switch de seguridad que protege la navegación, conmutando de forma segura entre dominios aptos para todo público (SFW) y de contenido restringido (NSFW).</li>
                         </ul>
 
-                        <h3>Sobre los Proveedores:</h3>
-                        <p>Los recursos provienen directamente de las APIs públicas de <a href="https://github.com/Nekos-life/nekos-dot-life" target="_blank" rel="noopener">Nekos.life</a>, <a href="https://nekos.best" target="_blank" rel="noopener">nekos.best</a> y <a href="https://waifu.im" target="_blank" rel="noopener">waifu.im</a>. El contenido es apto para todo público (SFW) por defecto, con soporte de ilustraciones adultas (NSFW) de forma opcional y controlada para uso legítimo a través de waifu.im.</p>
+                        <h3>Sobre la Licencia y los Datos:</h3>
+                        <p>Los recursos visuales son propiedad intelectual de los respectivos artistas y proveedores públicos de cada API. NekoExplorer actúa puramente como visor y gestor local de demostración de diseño premium sin fines comerciales. Todas las llamadas a las funciones de traducción y proxy fur están optimizadas mediante la red de borde (Edge/Serverless) de Vercel.</p>
                     </div>
                     <div class="about-footer">
                         <p>© 2026 NekoExplorer. Creado con fines de demostración de diseño premium.</p>
