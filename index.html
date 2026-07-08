@@ -184,7 +184,10 @@
                             
                             <!-- BUSCADOR MANUAL DE ETIQUETAS e621 -->
                             <div class="tag-search-container" id="e621TagSearch" style="display: none;">
-                                <h4 class="group-title" style="color: var(--secondary);">Búsqueda por Etiqueta</h4>
+                                <div class="tag-search-header">
+                                    <h4 class="group-title" style="color: var(--secondary);">Búsqueda por Etiqueta</h4>
+                                    <button type="button" id="e621ClearAllRecents" class="tag-clear-btn" style="display: none;">Limpiar</button>
+                                </div>
                                 <div class="tag-search-input-row">
                                     <input
                                         type="text"
@@ -201,6 +204,9 @@
                                     </button>
                                 </div>
                                 <div class="tag-search-recents" id="e621Recents"></div>
+                                <div class="tag-search-expand-container" id="e621RecentsExpandDiv" style="display: none;">
+                                    <button type="button" id="e621ExpandBtn" class="tag-expand-btn">Ver más</button>
+                                </div>
                             </div>
 
                             <!-- GRUPO e621 / e926 SFW -->

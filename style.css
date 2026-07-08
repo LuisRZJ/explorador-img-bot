@@ -1804,11 +1804,11 @@ input:checked + .slider:before {
 .tag-recent-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
+    gap: 6px;
+    padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.18);
     color: var(--primary);
     font-size: 0.72rem;
     font-family: var(--font-body);
@@ -1817,7 +1817,7 @@ input:checked + .slider:before {
 }
 
 .tag-recent-chip:hover {
-    background: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.15);
     border-color: var(--primary);
 }
 
@@ -1826,4 +1826,79 @@ input:checked + .slider:before {
     height: 10px;
     opacity: 0.6;
 }
+
+/* Cabecera del buscador de etiquetas */
+.tag-search-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.tag-search-header .group-title {
+    margin-bottom: 0 !important;
+}
+
+.tag-clear-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    font-family: var(--font-body);
+    font-weight: 600;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.tag-clear-btn:hover {
+    color: var(--secondary);
+    background: rgba(236, 72, 153, 0.08);
+}
+
+/* Botón de borrado selectivo del chip */
+.tag-recent-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 2px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: var(--text-muted);
+    transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.tag-recent-remove:hover {
+    color: var(--secondary);
+    background: rgba(236, 72, 153, 0.15);
+}
+
+/* Contenedor y botón de expansión */
+.tag-search-expand-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+.tag-expand-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.7rem;
+    font-family: var(--font-body);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.tag-expand-btn:hover {
+    background: rgba(139, 92, 246, 0.08);
+}
+
 

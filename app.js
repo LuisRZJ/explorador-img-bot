@@ -3,8 +3,9 @@ const API_BASE_URL = 'https://nekos.life/api/v2';
 
 // IndexedDB Configuración
 const DB_NAME = 'NekoExplorerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'favorites';
+const HISTORY_STORE_NAME = 'search_history';
 let db;
 
 function initDB() {
@@ -26,9 +27,90 @@ function initDB() {
             if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
                 dbInstance.createObjectStore(STORE_NAME, { keyPath: 'url' });
             }
+            if (!dbInstance.objectStoreNames.contains(HISTORY_STORE_NAME)) {
+                dbInstance.createObjectStore(HISTORY_STORE_NAME, { keyPath: 'tag' });
+            }
         };
     });
 }
+
+function saveSearchTagDB(tag) {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject('Base de datos no inicializada');
+        const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(HISTORY_STORE_NAME);
+        
+        const item = { tag: tag, timestamp: Date.now() };
+        store.put(item);
+        
+        transaction.oncomplete = () => {
+            limitSearchHistorySize();
+            resolve(true);
+        };
+        transaction.onerror = (e) => reject(e.target.error);
+    });
+}
+
+function limitSearchHistorySize() {
+    if (!db) return;
+    const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(HISTORY_STORE_NAME);
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+        let items = request.result || [];
+        if (items.length > 20) {
+            items.sort((a, b) => a.timestamp - b.timestamp);
+            const toDeleteCount = items.length - 20;
+            const deleteTransaction = db.transaction([HISTORY_STORE_NAME], 'readwrite');
+            const deleteStore = deleteTransaction.objectStore(HISTORY_STORE_NAME);
+            for (let i = 0; i < toDeleteCount; i++) {
+                deleteStore.delete(items[i].tag);
+            }
+        }
+    };
+}
+
+function deleteSearchTagDB(tag) {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject('Base de datos no inicializada');
+        const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(HISTORY_STORE_NAME);
+        const request = store.delete(tag);
+
+        request.onsuccess = () => resolve(true);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+function clearAllSearchTagsDB() {
+    return new Promise((resolve, reject) => {
+        if (!db) return reject('Base de datos no inicializada');
+        const transaction = db.transaction([HISTORY_STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(HISTORY_STORE_NAME);
+        const request = store.clear();
+
+        request.onsuccess = () => resolve(true);
+        request.onerror = (e) => reject(e.target.error);
+    });
+}
+
+function getAllSearchTagsDB() {
+    return new Promise((resolve, reject) => {
+        if (!db) return resolve([]);
+        const transaction = db.transaction([HISTORY_STORE_NAME], 'readonly');
+        const store = transaction.objectStore(HISTORY_STORE_NAME);
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            let items = request.result || [];
+            items.sort((a, b) => b.timestamp - a.timestamp);
+            resolve(items.map(item => item.tag));
+        };
+        request.onerror = () => resolve([]);
+    });
+}
+
 
 function saveFavoriteDB(fav) {
     return new Promise((resolve, reject) => {
@@ -90,7 +172,8 @@ const state = {
     currentImageUrl: '',
     favorites: [], // Se populará desde IndexedDB al iniciar
     activeSection: 'gallery-section',
-    isNsfw: false
+    isNsfw: false,
+    e621HistoryExpanded: false
 };
 
 // ==========================================================================
@@ -1048,33 +1131,40 @@ function sanitizeE621Tag(raw) {
 }
 
 /**
- * Carga y renderiza los chips de búsquedas recientes de e621 desde localStorage.
+ * Carga y renderiza los chips de búsquedas recientes de e621 desde IndexedDB.
  */
-function renderE621Recents() {
+async function renderE621Recents() {
     const container = document.getElementById('e621Recents');
+    const clearBtn = document.getElementById('e621ClearAllRecents');
+    const expandDiv = document.getElementById('e621RecentsExpandDiv');
+    const expandBtn = document.getElementById('e621ExpandBtn');
     if (!container) return;
 
     // Limpiar usando textContent / manipulación DOM (jamás innerHTML con datos de usuario)
     container.textContent = '';
 
-    let recents = [];
-    try {
-        recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
-        if (!Array.isArray(recents)) {
-            recents = [];
-        }
-    } catch (e) {
-        recents = [];
+    const recents = await getAllSearchTagsDB();
+    
+    if (recents.length === 0) {
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (expandDiv) expandDiv.style.display = 'none';
+        return;
     }
-    if (recents.length === 0) return;
 
-    recents.forEach(tag => {
+    if (clearBtn) clearBtn.style.display = 'block';
+
+    const maxVisible = 5;
+    const hasMore = recents.length > maxVisible;
+    const isExpanded = state.e621HistoryExpanded;
+    const visibleTags = (isExpanded || !hasMore) ? recents : recents.slice(0, maxVisible);
+
+    visibleTags.forEach(tag => {
         const chip = document.createElement('button');
         chip.className = 'tag-recent-chip';
         chip.setAttribute('type', 'button');
         chip.setAttribute('aria-label', `Buscar de nuevo: ${tag}`);
 
-        // Icono de reloj (SVG incrustado de Lucide — seguro porque no viene del usuario)
+        // Icono de reloj
         const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         iconSvg.setAttribute('viewBox', '0 0 24 24');
         iconSvg.setAttribute('fill', 'none');
@@ -1090,10 +1180,22 @@ function renderE621Recents() {
         iconSvg.appendChild(path);
         chip.appendChild(iconSvg);
 
-        // Texto del tag — usando textContent para evitar XSS
+        // Texto del tag
         const label = document.createElement('span');
         label.textContent = tag;
         chip.appendChild(label);
+
+        // Botón de eliminar individual
+        const removeBtn = document.createElement('span');
+        removeBtn.className = 'tag-recent-remove';
+        removeBtn.setAttribute('aria-label', `Eliminar búsqueda: ${tag}`);
+        removeBtn.innerHTML = '&times;';
+        removeBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Evitar disparar búsqueda
+            await deleteSearchTagDB(tag);
+            await renderE621Recents();
+        });
+        chip.appendChild(removeBtn);
 
         chip.addEventListener('click', () => {
             triggerE621TagSearch(tag);
@@ -1101,36 +1203,29 @@ function renderE621Recents() {
 
         container.appendChild(chip);
     });
+
+    if (hasMore && expandDiv && expandBtn) {
+        expandDiv.style.display = 'flex';
+        expandBtn.textContent = isExpanded ? 'Ver menos' : `Ver más (+${recents.length - maxVisible})`;
+    } else if (expandDiv) {
+        expandDiv.style.display = 'none';
+    }
 }
 
 /**
- * Guarda una etiqueta en el historial de búsquedas recientes (máximo 5).
+ * Guarda una etiqueta en el historial de búsquedas recientes (IndexedDB).
  * @param {string} tag - Etiqueta sanitizada a guardar.
  */
-function saveE621Recent(tag) {
+async function saveE621Recent(tag) {
     if (!tag) return;
-    let recents = [];
-    try {
-        recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
-        if (!Array.isArray(recents)) {
-            recents = [];
-        }
-    } catch (e) {
-        recents = [];
-    }
-    // Eliminar si ya existía (para moverlo al frente)
-    recents = recents.filter(t => t !== tag);
-    recents.unshift(tag);
-    // Guardar solo las 5 más recientes
-    recents = recents.slice(0, 5);
-    localStorage.setItem('e621_recent_tags', JSON.stringify(recents));
+    await saveSearchTagDB(tag);
 }
 
 /**
  * Ejecuta la búsqueda con la etiqueta dada, actualizando el estado y disparando la carga.
  * @param {string} rawTag - Etiqueta sin sanitizar (se sanitiza internamente).
  */
-function triggerE621TagSearch(rawTag) {
+async function triggerE621TagSearch(rawTag) {
     const tag = sanitizeE621Tag(rawTag);
     if (!tag) {
         showToast('Introduce una etiqueta válida (solo letras, números y guiones).', 'error');
@@ -1140,7 +1235,7 @@ function triggerE621TagSearch(rawTag) {
     // Actualizar el estado de la aplicación con la etiqueta buscada
     state.currentCategory = tag;
 
-    // Actualizar el nombre de la categoría activa en la UI (usando textContent — seguro)
+    // Actualizar el nombre de la categoría activa en la UI
     const categoryNameEl = document.getElementById('currentCategoryName');
     if (categoryNameEl) categoryNameEl.textContent = tag;
 
@@ -1148,8 +1243,8 @@ function triggerE621TagSearch(rawTag) {
     document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
 
     // Guardar en historial y re-renderizar chips
-    saveE621Recent(tag);
-    renderE621Recents();
+    await saveE621Recent(tag);
+    await renderE621Recents();
 
     // Lanzar la búsqueda
     loadActiveCategoryImage();
@@ -1162,6 +1257,8 @@ function triggerE621TagSearch(rawTag) {
 function setupE621TagSearch() {
     const input = document.getElementById('e621TagInput');
     const btn = document.getElementById('e621SearchBtn');
+    const clearBtn = document.getElementById('e621ClearAllRecents');
+    const expandBtn = document.getElementById('e621ExpandBtn');
     if (!input || !btn) return;
 
     // Clic en botón de búsqueda
@@ -1186,6 +1283,23 @@ function setupE621TagSearch() {
             input.value = cleaned;
         }
     });
+
+    // Clic en botón de limpiar todo
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            await clearAllSearchTagsDB();
+            await renderE621Recents();
+            showToast('Historial de búsqueda vaciado.', 'success');
+        });
+    }
+
+    // Clic en botón de expansión
+    if (expandBtn) {
+        expandBtn.addEventListener('click', () => {
+            state.e621HistoryExpanded = !state.e621HistoryExpanded;
+            renderE621Recents();
+        });
+    }
 
     // Renderizar los chips de búsquedas recientes al iniciar
     renderE621Recents();
