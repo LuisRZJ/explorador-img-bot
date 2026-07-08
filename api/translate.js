@@ -1,6 +1,6 @@
 // /api/translate.js — Vercel Serverless Function para traducir usando modelos Gemma de Google AI Studio
 // Utiliza gemma-4-31b-it como modelo principal, con fallbacks a gemma-2-27b-it y gemma-2-9b-it para asegurar disponibilidad.
-// Emplea Structured JSON Output mediante responseSchema para evitar la filtración de la cadena de pensamiento (Chain of Thought).
+// Emplea Structured JSON Output mediante responseSchema y un parser ultra-robusto para evitar la filtración del JSON o bloques markdown.
 
 export default async function handler(req, res) {
     // Cabeceras CORS
@@ -80,14 +80,8 @@ Texto original a traducir:
                 if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
                     const rawText = data.candidates[0].content.parts[0].text.trim();
                     
-                    let translation = "";
-                    try {
-                        const parsed = JSON.parse(rawText);
-                        translation = (parsed.translation || "").trim();
-                    } catch (jsonErr) {
-                        console.warn('[Traductor] La respuesta del modelo no es un JSON válido. Reintentando extracción simple.', jsonErr);
-                        translation = rawText;
-                    }
+                    // Extraer traducción con el parser robusto
+                    let translation = extractTranslation(rawText);
 
                     // Limpieza final de comillas redundantes
                     if (translation.startsWith('"') && translation.endsWith('"')) {
@@ -115,4 +109,50 @@ Texto original a traducir:
         error: 'Todos los intentos de traducción con Gemma fallaron.',
         details: lastError
     });
+}
+
+/**
+ * Parsea y limpia de forma extremadamente robusta la respuesta de traducción de la IA.
+ * Resuelve problemas de markdown, objetos JSON embebidos y strings mal formateados.
+ * @param {string} rawText - Texto original de la API de Google AI Studio.
+ * @returns {string} Traducción limpia.
+ */
+function extractTranslation(rawText) {
+    if (typeof rawText !== 'string') return '';
+    let cleaned = rawText.trim();
+    
+    // 1. Quitar bloques de código markdown de JSON si existen (e.g. ```json ... ``` o ``` ... ```)
+    cleaned = cleaned.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
+
+    // 2. Intentar parsear directamente el objeto completo
+    try {
+        const parsed = JSON.parse(cleaned);
+        if (parsed && typeof parsed === 'object' && parsed.translation) {
+            return parsed.translation.trim();
+        }
+    } catch (e) {
+        // Continuar al método de extracción por regex si falla
+    }
+
+    // 3. Buscar el primer objeto JSON {...} en el texto mediante regex e intentar parsearlo
+    const jsonMatch = cleaned.match(/\{[\s\S]*?\}/);
+    if (jsonMatch) {
+        try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed && typeof parsed === 'object' && parsed.translation) {
+                return parsed.translation.trim();
+            }
+        } catch (e) {
+            // Continuar
+        }
+    }
+
+    // 4. Extraer el valor del campo "translation" directamente usando regex buscando "translation": "..."
+    const keyMatch = cleaned.match(/"translation"\s*:\s*"([\s\S]*?)"/);
+    if (keyMatch && keyMatch[1]) {
+        return keyMatch[1].trim();
+    }
+
+    // 5. Fallback final: Devolver el texto limpio como está
+    return cleaned;
 }
