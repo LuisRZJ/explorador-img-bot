@@ -1262,31 +1262,43 @@ function setupE621TagSearch() {
     if (!input || !btn) return;
 
     // Clic en botón de búsqueda
-    btn.addEventListener('click', () => {
-        triggerE621TagSearch(input.value);
-        input.value = '';
-    });
-
-    // Enter en el campo de texto
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+    if (!btn.dataset.listenerAttached) {
+        btn.dataset.listenerAttached = 'true';
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
             triggerE621TagSearch(input.value);
             input.value = '';
-        }
-    });
+        });
+    }
 
-    // Bloquear pegado de contenido con caracteres peligrosos (validación en tiempo real)
-    input.addEventListener('input', () => {
-        const cleaned = sanitizeE621Tag(input.value);
-        if (input.value !== cleaned) {
-            input.value = cleaned;
-        }
-    });
+    // Enter y validación en el campo de texto
+    if (!input.dataset.listenerAttached) {
+        input.dataset.listenerAttached = 'true';
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                triggerE621TagSearch(input.value);
+                input.value = '';
+            }
+        });
+
+        // Bloquear pegado de contenido con caracteres peligrosos (validación en tiempo real)
+        input.addEventListener('input', () => {
+            const cleaned = sanitizeE621Tag(input.value);
+            if (input.value !== cleaned) {
+                input.value = cleaned;
+            }
+        });
+    }
 
     // Clic en botón de limpiar todo
-    if (clearBtn) {
-        clearBtn.addEventListener('click', async () => {
+    if (clearBtn && !clearBtn.dataset.listenerAttached) {
+        clearBtn.dataset.listenerAttached = 'true';
+        clearBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             await clearAllSearchTagsDB();
             await renderE621Recents();
             showToast('Historial de búsqueda vaciado.', 'success');
@@ -1294,8 +1306,11 @@ function setupE621TagSearch() {
     }
 
     // Clic en botón de expansión
-    if (expandBtn) {
-        expandBtn.addEventListener('click', () => {
+    if (expandBtn && !expandBtn.dataset.listenerAttached) {
+        expandBtn.dataset.listenerAttached = 'true';
+        expandBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             state.e621HistoryExpanded = !state.e621HistoryExpanded;
             renderE621Recents();
         });
