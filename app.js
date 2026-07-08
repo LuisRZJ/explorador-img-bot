@@ -283,6 +283,7 @@ function filterCategoriesByProvider() {
     const charactersSfwGroup = document.getElementById('charactersSfwGroup');
     const nsfwCategoryGroup = document.getElementById('nsfwCategoryGroup');
     const e621Group = document.getElementById('e621CategoryGroup');
+    const nekobotGroup = document.getElementById('nekobotCategoryGroup');
     
     categoryButtons.forEach(btn => {
         const allowed = btn.getAttribute('data-providers');
@@ -293,6 +294,22 @@ function filterCategoriesByProvider() {
             } else {
                 btn.style.display = 'none';
                 if (btn.classList.contains('active')) btn.classList.remove('active');
+            }
+        } else if (provider === 'nekobot') {
+            if (isNsfw) {
+                if (allowed === 'nekobot_nsfw') {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                    if (btn.classList.contains('active')) btn.classList.remove('active');
+                }
+            } else {
+                if (allowed === 'nekobot') {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                    if (btn.classList.contains('active')) btn.classList.remove('active');
+                }
             }
         } else if (isNsfw) {
             // Si estamos en modo NSFW, solo se muestran los botones que pertenecen al proveedor 'nsfw'
@@ -324,12 +341,21 @@ function filterCategoriesByProvider() {
         if (otherGroup) otherGroup.style.display = 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
         if (e621Group) e621Group.style.display = 'block';
+        if (nekobotGroup) nekobotGroup.style.display = 'none';
+    } else if (provider === 'nekobot') {
+        if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
+        if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
+        if (otherGroup) otherGroup.style.display = 'none';
+        if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
+        if (e621Group) e621Group.style.display = 'none';
+        if (nekobotGroup) nekobotGroup.style.display = 'block';
     } else if (isNsfw) {
         if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
         if (otherGroup) otherGroup.style.display = 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'block';
         if (e621Group) e621Group.style.display = 'none';
+        if (nekobotGroup) nekobotGroup.style.display = 'none';
     } else {
         if (reactionsSfwGroup) {
             reactionsSfwGroup.style.display = provider === 'waifu.im' ? 'none' : 'block';
@@ -338,6 +364,7 @@ function filterCategoriesByProvider() {
         if (otherGroup) otherGroup.style.display = provider === 'nekos.life' ? 'block' : 'none';
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
         if (e621Group) e621Group.style.display = 'none';
+        if (nekobotGroup) nekobotGroup.style.display = 'none';
     }
 
     // Garantizar que la categoría activa en el estado sea compatible y esté visible
@@ -367,7 +394,7 @@ async function switchProvider(providerName) {
     
     // Si el usuario selecciona Nekos.life o nekos.best, pero estaba en modo NSFW,
     // debemos apagar el modo NSFW porque no lo soportan.
-    if (state.isNsfw && providerName !== 'waifu.im' && providerName !== 'e621') {
+    if (state.isNsfw && providerName !== 'waifu.im' && providerName !== 'e621' && providerName !== 'nekobot') {
         const nsfwToggle = document.getElementById('nsfwToggle');
         if (nsfwToggle) nsfwToggle.checked = false;
         state.isNsfw = false;
@@ -397,7 +424,7 @@ async function switchProvider(providerName) {
     // Recargar la imagen
     loadActiveCategoryImage();
     
-    const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : 'waifu.im');
+    const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : (providerName === 'waifu.im' ? 'waifu.im' : (providerName === 'e621' ? 'e621 (Furry)' : 'NekoBot.xyz')));
     showToast(`Proveedor cambiado a: ${friendlyName}`, 'success');
     
     // Actualizar el título de la página
@@ -412,6 +439,7 @@ function updatePageTitle() {
     else if (providerName === 'nekos.best') friendlyName = 'nekos.best';
     else if (providerName === 'waifu.im') friendlyName = 'waifu.im';
     else if (providerName === 'e621') friendlyName = 'e621 / e926';
+    else if (providerName === 'nekobot') friendlyName = 'NekoBot.xyz';
     
     document.title = `NekoExplorer - Explorador Premium de ${friendlyName}`;
 }
@@ -422,7 +450,7 @@ async function toggleNsfwMode(isOn) {
     
     // Autoconmutación de proveedor:
     // nekos.life y nekos.best no soportan NSFW. Si se activa, forzar cambio a waifu.im.
-    if (isOn && state.currentProvider !== 'waifu.im' && state.currentProvider !== 'e621') {
+    if (isOn && state.currentProvider !== 'waifu.im' && state.currentProvider !== 'e621' && state.currentProvider !== 'nekobot') {
         state.currentProvider = 'waifu.im';
         const providerSelect = document.getElementById('providerSelect');
         if (providerSelect) providerSelect.value = 'waifu.im';
@@ -493,6 +521,8 @@ async function loadActiveCategoryImage() {
         
         if (provider === 'e621') {
             fetchUrl = `/api/e621?tags=${state.currentCategory}&nsfw=${isNsfw}`;
+        } else if (provider === 'nekobot') {
+            fetchUrl = `https://nekobot.xyz/api/image?type=${state.currentCategory}`;
         } else if (provider === 'nekos.life') {
             fetchUrl = `${API_BASE_URL}/img/${state.currentCategory}`;
         } else if (provider === 'nekos.best') {
@@ -524,6 +554,9 @@ async function loadActiveCategoryImage() {
             artistName = data.artist;
             artistHref = data.artist_url;
             if (artistCredit) artistCredit.style.display = 'flex';
+        } else if (provider === 'nekobot') {
+            if (!data.success || !data.message) throw new Error('No se encontró imagen de NekoBot válida');
+            imageUrl = data.message;
         } else if (provider === 'nekos.life') {
             if (!data.url) throw new Error('No se encontró la URL de la ilustración');
             imageUrl = data.url;
