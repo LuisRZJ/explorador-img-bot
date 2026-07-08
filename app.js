@@ -168,6 +168,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Configurar utilidades de texto
     setupTextUtilities();
     
+    // Configurar buscador manual de etiquetas de e621
+    setupE621TagSearch();
+    
     // Actualizar contador de favoritos en la interfaz
     updateFavoritesBadge();
 });
@@ -289,11 +292,20 @@ function filterCategoriesByProvider() {
         const allowed = btn.getAttribute('data-providers');
         
         if (provider === 'e621') {
-            if (allowed === 'e621') {
-                btn.style.display = 'flex';
+            if (isNsfw) {
+                if (allowed === 'e621' || allowed === 'e621_nsfw') {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                    if (btn.classList.contains('active')) btn.classList.remove('active');
+                }
             } else {
-                btn.style.display = 'none';
-                if (btn.classList.contains('active')) btn.classList.remove('active');
+                if (allowed === 'e621') {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                    if (btn.classList.contains('active')) btn.classList.remove('active');
+                }
             }
         } else if (provider === 'nekobot') {
             if (isNsfw) {
@@ -335,6 +347,7 @@ function filterCategoriesByProvider() {
     });
 
     // Controlar visibilidad de grupos completos del sidebar
+    const e621TagSearch = document.getElementById('e621TagSearch');
     if (provider === 'e621') {
         if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
@@ -342,6 +355,7 @@ function filterCategoriesByProvider() {
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
         if (e621Group) e621Group.style.display = 'block';
         if (nekobotGroup) nekobotGroup.style.display = 'none';
+        if (e621TagSearch) e621TagSearch.style.display = 'block';
     } else if (provider === 'nekobot') {
         if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
@@ -349,6 +363,7 @@ function filterCategoriesByProvider() {
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
         if (e621Group) e621Group.style.display = 'none';
         if (nekobotGroup) nekobotGroup.style.display = 'block';
+        if (e621TagSearch) e621TagSearch.style.display = 'none';
     } else if (isNsfw) {
         if (reactionsSfwGroup) reactionsSfwGroup.style.display = 'none';
         if (charactersSfwGroup) charactersSfwGroup.style.display = 'none';
@@ -356,6 +371,7 @@ function filterCategoriesByProvider() {
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'block';
         if (e621Group) e621Group.style.display = 'none';
         if (nekobotGroup) nekobotGroup.style.display = 'none';
+        if (e621TagSearch) e621TagSearch.style.display = 'none';
     } else {
         if (reactionsSfwGroup) {
             reactionsSfwGroup.style.display = provider === 'waifu.im' ? 'none' : 'block';
@@ -365,6 +381,7 @@ function filterCategoriesByProvider() {
         if (nsfwCategoryGroup) nsfwCategoryGroup.style.display = 'none';
         if (e621Group) e621Group.style.display = 'none';
         if (nekobotGroup) nekobotGroup.style.display = 'none';
+        if (e621TagSearch) e621TagSearch.style.display = 'none';
     }
 
     // Garantizar que la categoría activa en el estado sea compatible y esté visible
@@ -586,8 +603,8 @@ async function loadActiveCategoryImage() {
         skeleton.style.display = 'none';
         img.style.display = 'block';
         
-        // Configurar créditos de autor si vienen de nekos.best o waifu.im y existen
-        if ((provider === 'nekos.best' || provider === 'waifu.im') && artistName && artistCredit && artistLink) {
+        // Configurar créditos de autor si el proveedor los soporta y existen
+        if ((provider === 'nekos.best' || provider === 'waifu.im' || provider === 'e621') && artistName && artistCredit && artistLink) {
             artistLink.textContent = artistName;
             artistLink.href = artistHref || '#';
             artistCredit.style.display = 'flex';
@@ -997,4 +1014,154 @@ function setupTextUtilities() {
     btnCopyPhrase.addEventListener('click', () => {
         copyToClipboard(phraseResultText.textContent);
     });
+}
+
+// ==========================================================================
+// BÚSQUEDA MANUAL DE ETIQUETAS PARA e621
+// ==========================================================================
+
+/**
+ * Sanitiza la entrada del usuario para búsquedas en e621.
+ * Solo permite caracteres alfanuméricos, guion bajo, guion, espacio,
+ * dos puntos (para rating:safe / rating:explicit) y barra (para species/gender).
+ * Elimina cualquier caracter que pueda inyectar código HTML/JS.
+ * @param {string} raw - Cadena sin sanitizar del usuario.
+ * @returns {string} Cadena segura, truncada a 80 caracteres.
+ */
+function sanitizeE621Tag(raw) {
+    if (typeof raw !== 'string') return '';
+    // 1. Eliminar todo lo que no sea alfanumérico, espacio, guion, guion_bajo, dos_puntos o barra
+    const cleaned = raw.replace(/[^a-zA-Z0-9 _\-:/]/g, '');
+    // 2. Colapsar espacios múltiples en uno solo
+    const collapsed = cleaned.replace(/\s+/g, ' ').trim();
+    // 3. Limitar longitud máxima para evitar payloads gigantes
+    return collapsed.slice(0, 80);
+}
+
+/**
+ * Carga y renderiza los chips de búsquedas recientes de e621 desde localStorage.
+ */
+function renderE621Recents() {
+    const container = document.getElementById('e621Recents');
+    if (!container) return;
+
+    // Limpiar usando textContent / manipulación DOM (jamás innerHTML con datos de usuario)
+    container.textContent = '';
+
+    const recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+    if (recents.length === 0) return;
+
+    recents.forEach(tag => {
+        const chip = document.createElement('button');
+        chip.className = 'tag-recent-chip';
+        chip.setAttribute('type', 'button');
+        chip.setAttribute('aria-label', `Buscar de nuevo: ${tag}`);
+
+        // Icono de reloj (SVG incrustado de Lucide — seguro porque no viene del usuario)
+        const iconSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        iconSvg.setAttribute('viewBox', '0 0 24 24');
+        iconSvg.setAttribute('fill', 'none');
+        iconSvg.setAttribute('stroke', 'currentColor');
+        iconSvg.setAttribute('stroke-width', '2');
+        iconSvg.setAttribute('stroke-linecap', 'round');
+        iconSvg.setAttribute('stroke-linejoin', 'round');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', '12'); circle.setAttribute('cy', '12'); circle.setAttribute('r', '10');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+        path.setAttribute('points', '12 6 12 12 16 14');
+        iconSvg.appendChild(circle);
+        iconSvg.appendChild(path);
+        chip.appendChild(iconSvg);
+
+        // Texto del tag — usando textContent para evitar XSS
+        const label = document.createElement('span');
+        label.textContent = tag;
+        chip.appendChild(label);
+
+        chip.addEventListener('click', () => {
+            triggerE621TagSearch(tag);
+        });
+
+        container.appendChild(chip);
+    });
+}
+
+/**
+ * Guarda una etiqueta en el historial de búsquedas recientes (máximo 5).
+ * @param {string} tag - Etiqueta sanitizada a guardar.
+ */
+function saveE621Recent(tag) {
+    if (!tag) return;
+    let recents = JSON.parse(localStorage.getItem('e621_recent_tags') || '[]');
+    // Eliminar si ya existía (para moverlo al frente)
+    recents = recents.filter(t => t !== tag);
+    recents.unshift(tag);
+    // Guardar solo las 5 más recientes
+    recents = recents.slice(0, 5);
+    localStorage.setItem('e621_recent_tags', JSON.stringify(recents));
+}
+
+/**
+ * Ejecuta la búsqueda con la etiqueta dada, actualizando el estado y disparando la carga.
+ * @param {string} rawTag - Etiqueta sin sanitizar (se sanitiza internamente).
+ */
+function triggerE621TagSearch(rawTag) {
+    const tag = sanitizeE621Tag(rawTag);
+    if (!tag) {
+        showToast('Introduce una etiqueta válida (solo letras, números y guiones).', 'error');
+        return;
+    }
+
+    // Actualizar el estado de la aplicación con la etiqueta buscada
+    state.currentCategory = tag;
+
+    // Actualizar el nombre de la categoría activa en la UI (usando textContent — seguro)
+    const categoryNameEl = document.getElementById('currentCategoryName');
+    if (categoryNameEl) categoryNameEl.textContent = tag;
+
+    // Desmarcar botones predefinidos activos
+    document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+
+    // Guardar en historial y re-renderizar chips
+    saveE621Recent(tag);
+    renderE621Recents();
+
+    // Lanzar la búsqueda
+    loadActiveCategoryImage();
+}
+
+/**
+ * Configura los eventos del buscador manual de etiquetas de e621.
+ * Debe llamarse una vez al inicializar la app.
+ */
+function setupE621TagSearch() {
+    const input = document.getElementById('e621TagInput');
+    const btn = document.getElementById('e621SearchBtn');
+    if (!input || !btn) return;
+
+    // Clic en botón de búsqueda
+    btn.addEventListener('click', () => {
+        triggerE621TagSearch(input.value);
+        input.value = '';
+    });
+
+    // Enter en el campo de texto
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            triggerE621TagSearch(input.value);
+            input.value = '';
+        }
+    });
+
+    // Bloquear pegado de contenido con caracteres peligrosos (validación en tiempo real)
+    input.addEventListener('input', () => {
+        const cleaned = sanitizeE621Tag(input.value);
+        if (input.value !== cleaned) {
+            input.value = cleaned;
+        }
+    });
+
+    // Renderizar los chips de búsquedas recientes al iniciar
+    renderE621Recents();
 }

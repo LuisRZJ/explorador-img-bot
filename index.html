@@ -182,7 +182,28 @@
                                 </div>
                             </div>
                             
-                            <!-- GRUPO e621 / e926 -->
+                            <!-- BUSCADOR MANUAL DE ETIQUETAS e621 -->
+                            <div class="tag-search-container" id="e621TagSearch" style="display: none;">
+                                <h4 class="group-title" style="color: var(--secondary);">Búsqueda por Etiqueta</h4>
+                                <div class="tag-search-input-row">
+                                    <input
+                                        type="text"
+                                        id="e621TagInput"
+                                        class="tag-search-input"
+                                        placeholder="Ej: lucario, husky, dragon..."
+                                        maxlength="100"
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                        aria-label="Buscar por etiqueta en e621"
+                                    />
+                                    <button class="tag-search-btn" id="e621SearchBtn" aria-label="Buscar etiqueta">
+                                        <i data-lucide="search"></i>
+                                    </button>
+                                </div>
+                                <div class="tag-search-recents" id="e621Recents"></div>
+                            </div>
+
+                            <!-- GRUPO e621 / e926 SFW -->
                             <div class="category-group" id="e621CategoryGroup" style="display: none;">
                                 <h4 class="group-title" style="color: var(--secondary);">e621 / e926</h4>
                                 <div class="group-buttons">
@@ -192,6 +213,19 @@
                                     <button class="cat-btn" data-category="dragon" data-providers="e621"><i data-lucide="squirrel"></i> Dragon</button>
                                     <button class="cat-btn" data-category="protogen" data-providers="e621"><i data-lucide="cpu"></i> Protogen</button>
                                     <button class="cat-btn" data-category="scenery" data-providers="e621"><i data-lucide="image"></i> Paisaje</button>
+                                    <button class="cat-btn" data-category="anthro" data-providers="e621"><i data-lucide="user"></i> Anthro</button>
+                                    <button class="cat-btn" data-category="fluffy" data-providers="e621"><i data-lucide="sparkles"></i> Fluffy</button>
+                                    <button class="cat-btn" data-category="cute" data-providers="e621"><i data-lucide="smile"></i> Cute</button>
+                                    <button class="cat-btn" data-category="couple" data-providers="e621"><i data-lucide="heart"></i> Pareja</button>
+                                    <button class="cat-btn" data-category="smile" data-providers="e621"><i data-lucide="smile-plus"></i> Smile</button>
+                                    <button class="cat-btn" data-category="nature" data-providers="e621"><i data-lucide="tree-pine"></i> Naturaleza</button>
+                                    <!-- NSFW e621 (ocultas hasta activar switch) -->
+                                    <button class="cat-btn" data-category="male solo" data-providers="e621_nsfw" style="display:none;"><i data-lucide="user"></i> Solo ♂ (18+)</button>
+                                    <button class="cat-btn" data-category="female solo" data-providers="e621_nsfw" style="display:none;"><i data-lucide="user"></i> Solo ♀ (18+)</button>
+                                    <button class="cat-btn" data-category="anthro female" data-providers="e621_nsfw" style="display:none;"><i data-lucide="users"></i> Anthro ♀ (18+)</button>
+                                    <button class="cat-btn" data-category="anthro male" data-providers="e621_nsfw" style="display:none;"><i data-lucide="users"></i> Anthro ♂ (18+)</button>
+                                    <button class="cat-btn" data-category="gay" data-providers="e621_nsfw" style="display:none;"><i data-lucide="heart"></i> Gay (18+)</button>
+                                    <button class="cat-btn" data-category="rating:explicit" data-providers="e621_nsfw" style="display:none;"><i data-lucide="flame"></i> Explícito (18+)</button>
                                 </div>
                             </div>
                             

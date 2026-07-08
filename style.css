@@ -1727,3 +1727,103 @@ input:checked + .slider:before {
         font-size: 0.85rem;
     }
 }
+
+/* ==========================================================================
+   BUSCADOR MANUAL DE ETIQUETAS (e621)
+   ========================================================================== */
+.tag-search-container {
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.tag-search-input-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.tag-search-input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid rgba(139, 92, 246, 0.2);
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    outline: none;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.tag-search-input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.tag-search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.tag-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--gradient-primary);
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.tag-search-btn:hover {
+    opacity: 0.88;
+    transform: scale(1.05);
+}
+
+.tag-search-btn svg {
+    width: 15px;
+    height: 15px;
+}
+
+/* Historial de búsquedas recientes */
+.tag-search-recents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+    min-height: 0;
+}
+
+.tag-recent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.tag-recent-chip:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--primary);
+}
+
+.tag-recent-chip svg {
+    width: 10px;
+    height: 10px;
+    opacity: 0.6;
+}
+
