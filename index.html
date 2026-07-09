@@ -30,39 +30,42 @@
                 <span class="brand-name">Neko<span class="gradient-text">Explorer</span></span>
             </div>
             
-            <!-- Selector de Proveedor -->
-            <div class="provider-selector-wrapper">
-                <i data-lucide="server" class="provider-icon"></i>
-                <select id="providerSelect" class="provider-select" aria-label="Seleccionar proveedor de imágenes">
-                    <option value="nekos.life">Nekos.life</option>
-                    <option value="nekos.best">nekos.best</option>
-                    <option value="waifu.im">waifu.im</option>
-                    <option value="e621">e621 (Furry)</option>
-                    <option value="nekobot">NekoBot.xyz</option>
-                    <option value="gifukai">Gifukai</option>
-                </select>
-            </div>
-            
-            <!-- Selector de Emparejamiento (específico para Gifukai) -->
-            <div class="provider-selector-wrapper" id="pairingSelectorWrapper" style="display: none; margin-left: 8px;">
-                <i data-lucide="users" class="provider-icon"></i>
-                <select id="pairingSelect" class="provider-select" aria-label="Seleccionar emparejamiento">
-                    <option value="">Cualquier Emparejamiento</option>
-                    <option value="f">Chica sola (f)</option>
-                    <option value="m">Chico solo (m)</option>
-                    <option value="ff">Chica x Chica (ff)</option>
-                    <option value="mm">Chico x Chico (mm)</option>
-                    <option value="fm">Chico x Chica (fm)</option>
-                </select>
-            </div>
-            
-            <!-- Interruptor NSFW (18+) -->
-            <div class="nsfw-toggle-container">
-                <span class="nsfw-label">NSFW (18+)</span>
-                <label class="switch">
-                    <input type="checkbox" id="nsfwToggle">
-                    <span class="slider round"></span>
-                </label>
+            <!-- Controles del Header -->
+            <div class="nav-controls">
+                <!-- Selector de Proveedor -->
+                <div class="provider-selector-wrapper">
+                    <i data-lucide="server" class="provider-icon"></i>
+                    <select id="providerSelect" class="provider-select" aria-label="Seleccionar proveedor de imágenes">
+                        <option value="nekos.life">Nekos.life</option>
+                        <option value="nekos.best">nekos.best</option>
+                        <option value="waifu.im">waifu.im</option>
+                        <option value="e621">e621 (Furry)</option>
+                        <option value="nekobot">NekoBot.xyz</option>
+                        <option value="gifukai">Gifukai</option>
+                    </select>
+                </div>
+                
+                <!-- Selector de Emparejamiento (específico para Gifukai) -->
+                <div class="provider-selector-wrapper" id="pairingSelectorWrapper" style="display: none; margin-left: 8px;">
+                    <i data-lucide="users" class="provider-icon"></i>
+                    <select id="pairingSelect" class="provider-select" aria-label="Seleccionar emparejamiento">
+                        <option value="">Cualquier Emparejamiento</option>
+                        <option value="f">Chica sola (f)</option>
+                        <option value="m">Chico solo (m)</option>
+                        <option value="ff">Chica x Chica (ff)</option>
+                        <option value="mm">Chico x Chico (mm)</option>
+                        <option value="fm">Chico x Chica (fm)</option>
+                    </select>
+                </div>
+                
+                <!-- Interruptor NSFW (18+) -->
+                <div class="nsfw-toggle-container">
+                    <span class="nsfw-label">NSFW (18+)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="nsfwToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
             
             <!-- Botón de menú móvil -->
@@ -163,7 +166,7 @@
                                 <h4 class="group-title">Personajes y Arte</h4>
                                 <div class="group-buttons">
                                     <!-- Comunes a nekos.life y nekos.best -->
-                                    <button class="cat-btn active" data-category="waifu" data-providers="all"><i data-lucide="star"></i> Waifu</button>
+                                    <button class="cat-btn active" data-category="waifu" data-providers="im"><i data-lucide="star"></i> Waifu</button>
                                     <button class="cat-btn" data-category="neko" data-providers="life,best"><i data-lucide="cat"></i> Neko</button>
                                     <button class="cat-btn" data-category="fox_girl" data-providers="life,best"><i data-lucide="dog"></i> Chica Zorro</button>
                                     

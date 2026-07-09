@@ -1348,6 +1348,10 @@ a:hover {
         position: relative;
     }
     
+    .nav-controls {
+        margin-right: 12px;
+    }
+    
     .menu-toggle {
         display: block;
     }
@@ -1433,17 +1437,27 @@ a:hover {
         flex-shrink: 0;
     }
     
-    .provider-selector-wrapper {
+    .nav-controls {
         order: 3;
-        flex: 1 1 auto;
-        min-width: 120px;
+        width: 100%;
         margin-left: 0 !important;
         margin-right: 0 !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .provider-selector-wrapper {
+        flex: 1 1 auto;
+        min-width: 120px;
         justify-content: center;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
     
     .nsfw-toggle-container {
-        order: 4;
         flex-shrink: 0;
         margin-left: auto !important;
         margin-right: 0 !important;
@@ -1480,9 +1494,15 @@ a:hover {
     }
 }
 
-/* ==========================================================================
-   ESTILOS DE INTEGRACIÓN: PROVEEDORES Y CRÉDITOS DE ARTISTAS
-   ========================================================================== */
+/* Contenedor de Controles en el Header (Proveedores, Pairings, NSFW) */
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    margin-right: 16px;
+    flex-wrap: nowrap;
+}
 
 /* Selector de Proveedor en el Header */
 .provider-selector-wrapper {
