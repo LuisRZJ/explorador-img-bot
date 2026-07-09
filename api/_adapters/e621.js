@@ -1,61 +1,41 @@
 // api/_adapters/e621.js
 
-async function fetchImage(category, nsfw = false) {
-    const domain = nsfw ? 'e621.net' : 'e926.net';
+async function fetchImage(category, nsfw = false, req = null) {
+    let host = 'localhost:3000';
+    let protocol = 'http';
     
-    // Decodificar espacios y armar los tags
-    const cleanCategory = category.trim().replace(/%20/g, ' ').replace(/\+/g, ' ');
-    const searchTags = nsfw ? cleanCategory : `${cleanCategory} rating:safe`;
+    // Resolver dinámicamente el host y protocolo de la petición entrante
+    // Esto evita problemas con VERCEL_URL en vistas previas autenticadas o dominios personalizados.
+    if (req && req.headers && req.headers.host) {
+        host = req.headers.host;
+        protocol = host.includes('localhost') ? 'http' : 'https';
+    } else if (process.env.VERCEL_URL) {
+        host = process.env.VERCEL_URL;
+        protocol = 'https';
+    }
     
-    const encodedTags = encodeURIComponent(searchTags);
-    const url = `https://${domain}/posts.json?tags=${encodedTags}&limit=50`;
+    // Consultar al proxy de Rust en Vercel (/api/e621.rs)
+    // El proxy de Rust utiliza reqwest con el User-Agent adecuado para evitar el bloqueo Cloudflare.
+    const url = `${protocol}://${host}/api/e621?tags=${encodeURIComponent(category)}&nsfw=${nsfw}`;
     
-    const response = await fetch(url, {
-        headers: {
-            'User-Agent': 'NekoExplorer/2.0 (by LuisRZJ on e621; contact: luisrzj.dev)',
-            'Accept': 'application/json'
-        }
-    });
-    
+    const response = await fetch(url);
     if (!response.ok) {
-        throw new Error(`e621 API error: ${response.status}`);
+        throw new Error(`e621 proxy error: ${response.status}`);
     }
     
     const data = await response.json();
-    if (!data.posts || !Array.isArray(data.posts) || data.posts.length === 0) {
-        throw new Error("No se encontraron imágenes para esta categoría.");
+    if (!data.url) {
+        throw new Error("No se encontró imagen válida desde el proxy E621");
     }
-    
-    // Filtrar posts con imagen de tipo jpg/png/gif y URL válida
-    const validPosts = data.posts.filter(p => {
-        const file = p.file;
-        if (!file || !file.url || !file.ext) return false;
-        return ['jpg', 'png', 'gif'].includes(file.ext.toLowerCase());
-    });
-    
-    if (validPosts.length === 0) {
-        throw new Error("No se encontraron imágenes estáticas válidas (jpg/png/gif).");
-    }
-    
-    // Seleccionar uno aleatorio
-    const idx = Math.floor(Math.random() * validPosts.length);
-    const post = validPosts[idx];
-    
-    let artistName = "Artista Desconocido";
-    if (post.tags && Array.isArray(post.tags.artist) && post.tags.artist.length > 0) {
-        artistName = post.tags.artist[0];
-    }
-    
-    const artistUrl = `https://${domain}/posts?tags=${encodeURIComponent(artistName)}`;
     
     return {
-        url: post.file.url,
+        url: data.url,
         category: category,
         is_nsfw: nsfw,
         provider: 'e621',
         artist: {
-            name: artistName,
-            url: artistUrl
+            name: data.artist || "Artista Desconocido",
+            url: data.artist_url || null
         }
     };
 }

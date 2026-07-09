@@ -88,7 +88,7 @@ module.exports = async (req, res) => {
             const adapter = adapters[provider];
             if (!adapter) throw new Error(`Adaptador no implementado para ${provider}`);
             
-            const imageResult = await adapter.fetchImage(category, nsfw);
+            const imageResult = await adapter.fetchImage(category, nsfw, req);
             
             // Si tiene éxito, devolver el DTO normalizado
             return res.status(200).json({
