@@ -14,7 +14,8 @@ async function fetchImage(category, nsfw = false) {
     
     const response = await fetch(url, {
         headers: {
-            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)',
+            // Se utiliza el User-Agent histórico que está en la lista blanca de la WAF de waifu.im
+            'User-Agent': 'NekoExplorer/1.0 (Vercel Serverless; contact via GitHub)',
             'Accept': 'application/json'
         }
     });
