@@ -1,12 +1,21 @@
 // api/_adapters/waifuim.js
 
 async function fetchImage(category, nsfw = false) {
-    const isNsfwParam = nsfw ? 'true' : 'false';
-    const url = `https://api.waifu.im/search?included_tags=${category}&is_nsfw=${isNsfwParam}`;
+    // La API de waifu.im requiere parámetros en PascalCase y el path /images
+    const isNsfwParam = nsfw ? 'True' : 'False';
+    
+    // Si la categoría es nsfw_waifu, consultamos 'waifu' o dejamos vacío para obtener cualquier imagen NSFW.
+    let searchTag = category;
+    if (category === 'nsfw_waifu') {
+        searchTag = 'waifu';
+    }
+    
+    const url = `https://api.waifu.im/images?IncludedTags=${encodeURIComponent(searchTag)}&IsNsfw=${isNsfwParam}`;
     
     const response = await fetch(url, {
         headers: {
-            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)'
+            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)',
+            'Accept': 'application/json'
         }
     });
     
@@ -15,16 +24,14 @@ async function fetchImage(category, nsfw = false) {
     }
 
     const data = await response.json();
-    if (!data.images || data.images.length === 0) {
-        // En V2 waifu.im retorna images en vez de items, pero aseguramos compatibilidad
-        if (data.items && data.items.length > 0) {
-            data.images = data.items;
-        } else {
-            throw new Error("No se encontraron ilustraciones en Waifu.im");
-        }
+    
+    // Obtener la lista de imágenes (la API de waifu.im devuelve 'items' o 'images')
+    const items = data.items || data.images;
+    if (!items || items.length === 0) {
+        throw new Error("No se encontraron ilustraciones en Waifu.im");
     }
 
-    const item = data.images[0];
+    const item = items[0];
     let artistName = null;
     let artistUrl = null;
 
