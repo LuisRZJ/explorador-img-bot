@@ -1,33 +1,61 @@
 // api/_adapters/e621.js
 
 async function fetchImage(category, nsfw = false) {
-    // Para llamar a la API local de rust e621, usamos el VERCEL_URL.
-    // Si no estamos en vercel (ej dev local sin variables seteadas), fallback a localhost:3000
-    const host = process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
-        
-    const url = `${host}/api/e621?tags=${encodeURIComponent(category)}&nsfw=${nsfw}`;
+    const domain = nsfw ? 'e621.net' : 'e926.net';
     
-    const response = await fetch(url);
+    // Decodificar espacios y armar los tags
+    const cleanCategory = category.trim().replace(/%20/g, ' ').replace(/\+/g, ' ');
+    const searchTags = nsfw ? cleanCategory : `${cleanCategory} rating:safe`;
+    
+    const encodedTags = encodeURIComponent(searchTags);
+    const url = `https://${domain}/posts.json?tags=${encodedTags}&limit=50`;
+    
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'NekoExplorer/2.0 (by LuisRZJ on e621; contact: luisrzj.dev)',
+            'Accept': 'application/json'
+        }
+    });
     
     if (!response.ok) {
-        throw new Error(`E621 Proxy error: ${response.status}`);
+        throw new Error(`e621 API error: ${response.status}`);
     }
-
+    
     const data = await response.json();
-    if (!data.url) {
-        throw new Error("No se encontró imagen válida desde el proxy E621");
+    if (!data.posts || !Array.isArray(data.posts) || data.posts.length === 0) {
+        throw new Error("No se encontraron imágenes para esta categoría.");
     }
-
+    
+    // Filtrar posts con imagen de tipo jpg/png/gif y URL válida
+    const validPosts = data.posts.filter(p => {
+        const file = p.file;
+        if (!file || !file.url || !file.ext) return false;
+        return ['jpg', 'png', 'gif'].includes(file.ext.toLowerCase());
+    });
+    
+    if (validPosts.length === 0) {
+        throw new Error("No se encontraron imágenes estáticas válidas (jpg/png/gif).");
+    }
+    
+    // Seleccionar uno aleatorio
+    const idx = Math.floor(Math.random() * validPosts.length);
+    const post = validPosts[idx];
+    
+    let artistName = "Artista Desconocido";
+    if (post.tags && Array.isArray(post.tags.artist) && post.tags.artist.length > 0) {
+        artistName = post.tags.artist[0];
+    }
+    
+    const artistUrl = `https://${domain}/posts?tags=${encodeURIComponent(artistName)}`;
+    
     return {
-        url: data.url,
-        category: category, // En este caso category es un tag de e621
+        url: post.file.url,
+        category: category,
         is_nsfw: nsfw,
         provider: 'e621',
         artist: {
-            name: data.artist || null,
-            url: data.artist_url || null
+            name: artistName,
+            url: artistUrl
         }
     };
 }
