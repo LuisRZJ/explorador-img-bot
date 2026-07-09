@@ -630,66 +630,25 @@ async function loadActiveCategoryImage() {
     if (artistCredit) artistCredit.style.display = 'none';
     
     try {
-        let fetchUrl = '';
         const provider = state.currentProvider;
         const isNsfw = state.isNsfw;
+        const category = state.currentCategory;
         
-        if (provider === 'e621') {
-            fetchUrl = `/api/e621?tags=${state.currentCategory}&nsfw=${isNsfw}`;
-        } else if (provider === 'nekobot') {
-            fetchUrl = `https://nekobot.xyz/api/image?type=${state.currentCategory}`;
-        } else if (provider === 'nekos.life') {
-            fetchUrl = `${API_BASE_URL}/img/${state.currentCategory}`;
-        } else if (provider === 'nekos.best') {
-            const apiCategory = (state.currentCategory === 'fox_girl') ? 'kitsune' : state.currentCategory;
-            fetchUrl = `${BEST_BASE_URL}/${apiCategory}`;
-        } else if (provider === 'waifu.im') {
-            const nsfwParam = isNsfw ? 'true' : 'false';
-            fetchUrl = `${IM_BASE_URL}?included_tags=${state.currentCategory}&is_nsfw=${nsfwParam}`;
-        }
+        // Llamada a nuestro nuevo API Gateway Unificado (Dogfooding)
+        const fetchUrl = `/api/v1/image?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider)}&nsfw=${isNsfw}`;
         
         const response = await fetch(fetchUrl);
-        if (!response.ok) {
-            let errMsg = `Error de conexión con el proveedor (${response.status})`;
-            try {
-                const errData = await response.json();
-                if (errData.error) errMsg = errData.error;
-            } catch (e) {}
-            throw new Error(errMsg);
-        }
         
         const data = await response.json();
-        let imageUrl = '';
-        let artistName = '';
-        let artistHref = '';
         
-        if (provider === 'e621') {
-            if (!data.url) throw new Error('No se encontró imagen de e621 válida');
-            imageUrl = data.url;
-            artistName = data.artist;
-            artistHref = data.artist_url;
-            if (artistCredit) artistCredit.style.display = 'flex';
-        } else if (provider === 'nekobot') {
-            if (!data.success || !data.message) throw new Error('No se encontró imagen de NekoBot válida');
-            imageUrl = data.message;
-        } else if (provider === 'nekos.life') {
-            if (!data.url) throw new Error('No se encontró la URL de la ilustración');
-            imageUrl = data.url;
-        } else if (provider === 'waifu.im') {
-            if (!data.items || data.items.length === 0) throw new Error('No se encontraron ilustraciones');
-            const item = data.items[0];
-            imageUrl = item.url;
-            if (item.artists && item.artists.length > 0) {
-                artistName = item.artists[0].name;
-                artistHref = item.artists[0].pixiv || item.artists[0].twitter || item.source || '#';
-            }
-        } else if (provider === 'nekos.best') {
-            if (!data.results || data.results.length === 0) throw new Error('No se encontraron ilustraciones');
-            const result = data.results[0];
-            imageUrl = result.url;
-            artistName = result.artist_name;
-            artistHref = result.artist_href;
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || `Error del Gateway (${response.status})`);
         }
+        
+        const imageUrl = data.data.url;
+        const artistName = data.data.artist ? data.data.artist.name : null;
+        const artistHref = data.data.artist ? data.data.artist.url : null;
+        const actualProvider = data.data.provider; // Por si el Gateway hizo fallback
         
         state.currentImageUrl = imageUrl;
         
@@ -701,8 +660,8 @@ async function loadActiveCategoryImage() {
         skeleton.style.display = 'none';
         img.style.display = 'block';
         
-        // Configurar créditos de autor si el proveedor los soporta y existen
-        if ((provider === 'nekos.best' || provider === 'waifu.im' || provider === 'e621') && artistName && artistCredit && artistLink) {
+        // Configurar créditos de autor si existen
+        if (artistName && artistCredit && artistLink) {
             artistLink.textContent = artistName;
             artistLink.href = artistHref || '#';
             artistCredit.style.display = 'flex';
