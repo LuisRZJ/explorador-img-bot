@@ -202,6 +202,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
+    // Configurar e inicializar selector de emparejamiento para Gifukai
+    const pairingSelect = document.getElementById('pairingSelect');
+    if (pairingSelect) {
+        pairingSelect.addEventListener('change', () => {
+            loadActiveCategoryImage();
+        });
+    }
+    togglePairingSelector(state.currentProvider);
+    
     // Configurar e inicializar el switch de NSFW y el control de edad
     const nsfwToggle = document.getElementById('nsfwToggle');
     const ageGateModal = document.getElementById('ageGateModal');
@@ -433,7 +442,8 @@ function filterCategoriesByProvider() {
             if (allowed === 'all' || 
                 (allowed.includes('life') && provider === 'nekos.life') || 
                 (allowed.includes('best') && provider === 'nekos.best') || 
-                (allowed.includes('im') && provider === 'waifu.im')) {
+                (allowed.includes('im') && provider === 'waifu.im') ||
+                ((allowed.includes('life') || allowed.includes('best') || allowed.includes('gifukai')) && provider === 'gifukai')) {
                 btn.style.display = 'flex';
             } else {
                 btn.style.display = 'none';
@@ -505,7 +515,7 @@ async function switchProvider(providerName) {
     state.currentProvider = providerName;
     localStorage.setItem('neko_provider', providerName);
     
-    // Si el usuario selecciona Nekos.life o nekos.best, pero estaba en modo NSFW,
+    // Si el usuario selecciona un proveedor SFW pero estaba en modo NSFW,
     // debemos apagar el modo NSFW porque no lo soportan.
     if (state.isNsfw && providerName !== 'waifu.im' && providerName !== 'e621' && providerName !== 'nekobot') {
         const nsfwToggle = document.getElementById('nsfwToggle');
@@ -513,6 +523,9 @@ async function switchProvider(providerName) {
         state.isNsfw = false;
         showToast('Proveedor SFW seleccionado. Se desactivó el modo NSFW.', 'success');
     }
+    
+    // Mostrar u ocultar el selector de emparejamiento para Gifukai
+    togglePairingSelector(providerName);
     
     // Filtrar visualmente las categorías compatibles
     filterCategoriesByProvider();
@@ -542,7 +555,14 @@ async function switchProvider(providerName) {
     // Recargar la imagen
     loadActiveCategoryImage();
     
-    const friendlyName = providerName === 'nekos.life' ? 'Nekos.life' : (providerName === 'nekos.best' ? 'nekos.best' : (providerName === 'waifu.im' ? 'waifu.im' : (providerName === 'e621' ? 'e621 (Furry)' : 'NekoBot.xyz')));
+    let friendlyName = providerName;
+    if (providerName === 'nekos.life') friendlyName = 'Nekos.life';
+    else if (providerName === 'nekos.best') friendlyName = 'nekos.best';
+    else if (providerName === 'waifu.im') friendlyName = 'waifu.im';
+    else if (providerName === 'e621') friendlyName = 'e621 (Furry)';
+    else if (providerName === 'nekobot') friendlyName = 'NekoBot.xyz';
+    else if (providerName === 'gifukai') friendlyName = 'Gifukai';
+    
     showToast(`Proveedor cambiado a: ${friendlyName}`, 'success');
     
     // Actualizar el título de la página
@@ -558,8 +578,23 @@ function updatePageTitle() {
     else if (providerName === 'waifu.im') friendlyName = 'waifu.im';
     else if (providerName === 'e621') friendlyName = 'e621 / e926';
     else if (providerName === 'nekobot') friendlyName = 'NekoBot.xyz';
+    else if (providerName === 'gifukai') friendlyName = 'Gifukai';
     
     document.title = `NekoExplorer - Explorador Premium de ${friendlyName}`;
+}
+
+// Función helper para alternar la visibilidad del selector de pairings de Gifukai
+function togglePairingSelector(providerName) {
+    const wrapper = document.getElementById('pairingSelectorWrapper');
+    const select = document.getElementById('pairingSelect');
+    if (wrapper) {
+        if (providerName === 'gifukai') {
+            wrapper.style.display = 'flex';
+        } else {
+            wrapper.style.display = 'none';
+            if (select) select.value = '';
+        }
+    }
 }
 
 // Nueva función helper para alternar el modo NSFW
@@ -638,7 +673,13 @@ async function loadActiveCategoryImage() {
         const category = state.currentCategory;
         
         // Llamada a nuestro nuevo API Gateway Unificado (Dogfooding)
-        const fetchUrl = `/api/v1/image?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider)}&nsfw=${isNsfw}`;
+        let fetchUrl = `/api/v1/image?category=${encodeURIComponent(category)}&provider=${encodeURIComponent(provider)}&nsfw=${isNsfw}`;
+        
+        // Añadir parámetro de emparejamiento (pairing) si se consulta Gifukai
+        const pairingSelect = document.getElementById('pairingSelect');
+        if (provider === 'gifukai' && pairingSelect && pairingSelect.value) {
+            fetchUrl += `&pairing=${encodeURIComponent(pairingSelect.value)}`;
+        }
         
         const response = await fetch(fetchUrl);
         
@@ -1326,6 +1367,7 @@ function setupDocs() {
     const btnPlayImage = document.getElementById('btnPlayImage');
     const playCategory = document.getElementById('playCategory');
     const playProvider = document.getElementById('playProvider');
+    const playPairing = document.getElementById('playPairing');
     const playImageResult = document.getElementById('playImageResult');
     const playImageQueryUrl = document.getElementById('playImageQueryUrl');
     const playImageJsonCode = document.getElementById('playImageJsonCode');
@@ -1346,6 +1388,7 @@ function setupDocs() {
             params.set('category', category);
             if (provider) params.set('provider', provider);
             if (isNsfw) params.set('nsfw', 'true');
+            if (playPairing && playPairing.value) params.set('pairing', playPairing.value);
             
             const urlPath = `/api/v1/image?${params.toString()}`;
             const fullUrl = `${protocol}://${host}${urlPath}`;

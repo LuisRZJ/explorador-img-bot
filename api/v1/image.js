@@ -7,7 +7,8 @@ const adapters = {
     'nekos.best': require('../_adapters/nekosbest'),
     'waifu.im': require('../_adapters/waifuim'),
     'nekobot': require('../_adapters/nekobot'),
-    'e621': require('../_adapters/e621')
+    'e621': require('../_adapters/e621'),
+    'gifukai': require('../_adapters/gifukai')
 };
 
 // Función para mezclar array (Fisher-Yates)
