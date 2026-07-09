@@ -4,7 +4,11 @@ async function fetchImage(category, nsfw = false) {
     // Nekobot no requiere flag nsfw explicita, la categoria lo define
     const url = `https://nekobot.xyz/api/image?type=${category}`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)'
+        }
+    });
     
     if (!response.ok) {
         throw new Error(`Nekobot API error: ${response.status}`);

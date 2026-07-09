@@ -9,7 +9,11 @@ async function fetchImage(category, nsfw = false) {
     const apiCategory = category === 'fox_girl' ? 'kitsune' : category;
     const url = `https://nekos.best/api/v2/${apiCategory}`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)'
+        }
+    });
     
     if (!response.ok) {
         throw new Error(`Nekos.best API error: ${response.status}`);

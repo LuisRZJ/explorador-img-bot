@@ -1,5 +1,5 @@
 // api/_adapters/nekoslife.js
-const fetch = require('node-fetch'); // O usar el fetch global de Node.js 18+
+
 
 async function fetchImage(category, nsfw = false) {
     if (nsfw) {
@@ -7,7 +7,11 @@ async function fetchImage(category, nsfw = false) {
     }
     
     const url = `https://nekos.life/api/v2/img/${category}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)'
+        }
+    });
     
     if (!response.ok) {
         throw new Error(`Nekos.life API error: ${response.status}`);

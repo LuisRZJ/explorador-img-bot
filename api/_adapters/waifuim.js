@@ -4,7 +4,11 @@ async function fetchImage(category, nsfw = false) {
     const isNsfwParam = nsfw ? 'true' : 'false';
     const url = `https://api.waifu.im/search?included_tags=${category}&is_nsfw=${isNsfwParam}`;
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        headers: {
+            'User-Agent': 'NekoExplorer/2.0 (contact: luisrzj.dev)'
+        }
+    });
     
     if (!response.ok) {
         throw new Error(`Waifu.im API error: ${response.status}`);
