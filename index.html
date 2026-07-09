@@ -67,6 +67,9 @@
                 <button class="nav-link" data-target="text-section">
                     <i data-lucide="terminal"></i> Utilidades
                 </button>
+                <button class="nav-link" data-target="docs-section">
+                    <i data-lucide="book-open"></i> API Docs
+                </button>
                 <button class="nav-link" data-target="about-section">
                     <i data-lucide="info"></i> Info
                 </button>
@@ -440,6 +443,275 @@
                                 <p class="result-text" id="phraseResultText"></p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: DOCUMENTACIÓN DE APIS -->
+            <section id="docs-section" class="app-section">
+                <div class="docs-container">
+                    <!-- Barra lateral de navegación interna para la documentación -->
+                    <div class="docs-sidebar glass-panel">
+                        <h3>API Endpoints</h3>
+                        <div class="docs-nav" id="docsNav">
+                            <button class="docs-nav-item active" data-pane="doc-intro">
+                                <i data-lucide="info"></i> Introducción
+                            </button>
+                            <button class="docs-nav-item" data-pane="doc-image">
+                                <i data-lucide="image"></i> /api/v1/image
+                            </button>
+                            <button class="docs-nav-item" data-pane="doc-categories">
+                                <i data-lucide="grid"></i> /api/v1/categories
+                            </button>
+                            <button class="docs-nav-item" data-pane="doc-translate">
+                                <i data-lucide="languages"></i> /api/translate
+                            </button>
+                            <button class="docs-nav-item" data-pane="doc-utilities">
+                                <i data-lucide="terminal"></i> Utilidades de Texto
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenido de la documentación -->
+                    <div class="docs-content glass-panel">
+                        
+                        <!-- Panel 1: Introducción -->
+                        <div class="doc-pane active" id="doc-intro">
+                            <h2>Documentación del API Gateway</h2>
+                            <p class="lead">NekoExplorer expone una suite robusta y veloz de APIs públicas unificadas listas para integrarse en tus propios sistemas (bots de WhatsApp, Discord, scripts o backends).</p>
+                            <hr class="divider">
+                            <div class="alert-box info">
+                                <i data-lucide="info"></i>
+                                <span><strong>Host Base de producción:</strong> <code>https://explorador-img-bot.vercel.app</code></span>
+                            </div>
+                            <h3>Características clave de la API:</h3>
+                            <ul style="margin-left: 20px; margin-bottom: 24px; color: var(--text-muted); line-height: 1.6;">
+                                <li><strong>Soporte CORS Completo:</strong> Todos los endpoints devuelven cabeceras <code>Access-Control-Allow-Origin: *</code>. Esto significa que puedes consultarlos directamente con JS frontend (usando <code>fetch</code> o <code>axios</code>) sin problemas de CORS.</li>
+                                <li><strong>Formato JSON Normalizado:</strong> Respuestas rápidas codificadas en JSON estándar.</li>
+                                <li><strong>Sin API Key ni Autenticación:</strong> Libre de límites y keys comerciales.</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Panel 2: /api/v1/image -->
+                        <div class="doc-pane" id="doc-image" style="display: none;">
+                            <h2>Gateway de Imágenes: <code>GET /api/v1/image</code></h2>
+                            <p class="lead">Obtén una ilustración o foto aleatoria normalizada a partir de múltiples APIs en cascada (nekos.best, nekos.life, waifu.im, nekobot y e621/e926).</p>
+                            
+                            <h3>Parámetros del Endpoint:</h3>
+                            <table class="docs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Parámetro</th>
+                                        <th>Tipo</th>
+                                        <th>Requerido</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>category</code></td>
+                                        <td><code>string</code></td>
+                                        <td><strong>Sí</strong></td>
+                                        <td>Categoría solicitada (ej. <code>neko</code>, <code>waifu</code>, <code>hug</code>, <code>feral</code>, <code>hneko</code>).</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>provider</code></td>
+                                        <td><code>string</code></td>
+                                        <td>No</td>
+                                        <td>Fuerza el uso de un proveedor específico: <code>nekos.life</code>, <code>nekos.best</code>, <code>waifu.im</code>, <code>nekobot</code>, <code>e621</code>.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>nsfw</code></td>
+                                        <td><code>boolean</code></td>
+                                        <td>No</td>
+                                        <td>Indica si se habilita contenido explícito 18+. Valor por defecto <code>false</code>.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <h3>Ejemplo de Respuesta exitosa:</h3>
+                            <pre class="json-code"><code>{
+  "success": true,
+  "data": {
+    "url": "https://cdn.waifu.im/7693.jpg",
+    "category": "waifu",
+    "is_nsfw": false,
+    "provider": "waifu.im",
+    "artist": {
+      "name": "Nardack🦋",
+      "url": "https://www.pixiv.net/users/341433"
+    }
+  },
+  "meta": {
+    "timestamp": 1783557200000,
+    "tried_providers": [ "waifu.im" ]
+  }
+}</code></pre>
+
+                            <!-- Playground -->
+                            <div class="playground-card">
+                                <h3>Playground Interactivo</h3>
+                                <div class="playground-row">
+                                    <div class="form-group">
+                                        <label for="playCategory">Categoría</label>
+                                        <select id="playCategory" class="form-control">
+                                            <option value="waifu">waifu (SFW)</option>
+                                            <option value="neko">neko (SFW)</option>
+                                            <option value="hug">hug (SFW)</option>
+                                            <option value="hentai">hentai (NSFW - waifu.im)</option>
+                                            <option value="hneko">hneko (NSFW - NekoBot)</option>
+                                            <option value="feral">feral (Furry SFW - e621)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="playProvider">Proveedor (Opcional)</label>
+                                        <select id="playProvider" class="form-control">
+                                            <option value="">Automático</option>
+                                            <option value="waifu.im">waifu.im</option>
+                                            <option value="nekos.best">nekos.best</option>
+                                            <option value="nekos.life">nekos.life</option>
+                                            <option value="nekobot">NekoBot.xyz</option>
+                                            <option value="e621">e621 (Furry)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="playground-actions">
+                                    <button class="btn btn-primary" id="btnPlayImage">Enviar Petición</button>
+                                </div>
+                                <div class="playground-result" id="playImageResult" style="display: none;">
+                                    <strong>Petición enviada a:</strong>
+                                    <span class="query-url-text" id="playImageQueryUrl"></span>
+                                    <pre class="json-code"><code id="playImageJsonCode">Cargando...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel 3: /api/v1/categories -->
+                        <div class="doc-pane" id="doc-categories" style="display: none;">
+                            <h2>Listado de Categorías: <code>GET /api/v1/categories</code></h2>
+                            <p class="lead">Obtén un listado estructurado de todas las categorías disponibles en el Gateway, su clasificación (SFW o NSFW) y los proveedores compatibles con cada una.</p>
+                            
+                            <h3>Detalles:</h3>
+                            <ul style="margin-left: 20px; margin-bottom: 24px; color: var(--text-muted); line-height: 1.6;">
+                                <li><strong>Endpoint:</strong> <code>https://explorador-img-bot.vercel.app/api/v1/categories</code></li>
+                                <li><strong>Petición:</strong> Sin parámetros requeridos.</li>
+                            </ul>
+
+                            <div class="playground-card">
+                                <h3>Probar Endpoint</h3>
+                                <div class="playground-actions">
+                                    <button class="btn btn-primary" id="btnPlayCategories">Consultar Categorías</button>
+                                </div>
+                                <div class="playground-result" id="playCategoriesResult" style="display: none;">
+                                    <strong>Petición enviada a:</strong>
+                                    <span class="query-url-text">https://explorador-img-bot.vercel.app/api/v1/categories</span>
+                                    <pre class="json-code"><code id="playCategoriesJsonCode">Cargando...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel 4: /api/translate -->
+                        <div class="doc-pane" id="doc-translate" style="display: none;">
+                            <h2>Traductor Gemma: <code>GET /api/translate</code></h2>
+                            <p class="lead">Traduce texto (originalmente en inglés u otro idioma) al español con lenguaje natural fluido y contextual, potenciado por la API de Google AI Studio y el modelo Gemma.</p>
+                            
+                            <h3>Parámetros del Endpoint:</h3>
+                            <table class="docs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Parámetro</th>
+                                        <th>Tipo</th>
+                                        <th>Requerido</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>text</code></td>
+                                        <td><code>string</code></td>
+                                        <td><strong>Sí</strong></td>
+                                        <td>El texto o frase en inglés que deseas traducir al español.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                            <h3>Ejemplo de Respuesta:</h3>
+                            <pre class="json-code"><code>{
+  "translation": "El oído de la lechuza común está tan desarrollado que puede cazar en total oscuridad."
+}</code></pre>
+
+                            <!-- Playground -->
+                            <div class="playground-card">
+                                <h3>Playground de Traducción</h3>
+                                <div class="form-group" style="margin-bottom: 16px;">
+                                    <label for="playTranslateText">Texto en Inglés a Traducir:</label>
+                                    <input type="text" id="playTranslateText" class="form-control" value="A cat has 32 muscles in each ear to control them.">
+                                </div>
+                                <div class="playground-actions">
+                                    <button class="btn btn-primary" id="btnPlayTranslate">Traducir con Gemma</button>
+                                </div>
+                                <div class="playground-result" id="playTranslateResult" style="display: none;">
+                                    <strong>Petición enviada a:</strong>
+                                    <span class="query-url-text" id="playTranslateQueryUrl"></span>
+                                    <pre class="json-code"><code id="playTranslateJsonCode">Cargando...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Panel 5: Otras utilidades -->
+                        <div class="doc-pane" id="doc-utilities" style="display: none;">
+                            <h2>Utilidades de Texto</h2>
+                            <p class="lead">Endpoints rápidos para consultar información estructurada y realizar dinámicas de texto divertidas.</p>
+                            
+                            <hr class="divider">
+                            
+                            <h3>1. Dato Curioso del Día: <code>GET /api/fact</code></h3>
+                            <p>Genera un dato curioso real en español traducido mediante Gemma.</p>
+                            <p><strong>URL de consulta:</strong> <code>https://explorador-img-bot.vercel.app/api/fact</code></p>
+                            
+                            <h3>2. Pregunta Reflexiva: <code>GET /api/why</code></h3>
+                            <p>Genera una pregunta aleatoria filosófica, existencial o absurda en español.</p>
+                            <p><strong>URL de consulta:</strong> <code>https://explorador-img-bot.vercel.app/api/why</code></p>
+                            
+                            <h3>3. Owoify Text: <code>GET /api/owoify</code></h3>
+                            <p>Convierte tu texto al dialecto "Owoify" de internet (remplaza 'r' y 'l' por 'w').</p>
+                            <p><strong>Parámetro:</strong> <code>text</code> (string, requerido).</p>
+                            <p><strong>URL de consulta:</strong> <code>https://explorador-img-bot.vercel.app/api/owoify?text=Hello%20World</code></p>
+                            
+                            <h3>4. Bola 8 Mágica: <code>GET /api/8ball</code></h3>
+                            <p>Obtén una respuesta del oráculo de la Bola 8 traducida al español.</p>
+                            <p><strong>Parámetro:</strong> <code>question</code> (string, requerido).</p>
+                            <p><strong>URL de consulta:</strong> <code>https://explorador-img-bot.vercel.app/api/8ball?question=Sere%20millonario</code></p>
+                            
+                            <!-- Playground -->
+                            <div class="playground-card">
+                                <h3>Probar Utilidades Rápidas</h3>
+                                <div class="playground-row">
+                                    <div class="form-group">
+                                        <label for="playUtilitySelect">Servicio</label>
+                                        <select id="playUtilitySelect" class="form-control">
+                                            <option value="fact">Dato Curioso (/api/fact)</option>
+                                            <option value="why">Pregunta Reflexiva (/api/why)</option>
+                                            <option value="owoify">Owoify (/api/owoify)</option>
+                                            <option value="8ball">Bola 8 (/api/8ball)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" id="playUtilityInputGroup" style="display: none;">
+                                        <label id="playUtilityInputLabel" for="playUtilityInputValue">Valor / Texto</label>
+                                        <input type="text" id="playUtilityInputValue" class="form-control" value="">
+                                    </div>
+                                </div>
+                                <div class="playground-actions">
+                                    <button class="btn btn-primary" id="btnPlayUtility">Consultar Servicio</button>
+                                </div>
+                                <div class="playground-result" id="playUtilityResult" style="display: none;">
+                                    <strong>Petición enviada a:</strong>
+                                    <span class="query-url-text" id="playUtilityQueryUrl"></span>
+                                    <pre class="json-code"><code id="playUtilityJsonCode">Cargando...</code></pre>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </section>

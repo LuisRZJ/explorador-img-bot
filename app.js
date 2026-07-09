@@ -254,6 +254,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Configurar buscador manual de etiquetas de e621
     setupE621TagSearch();
     
+    // Configurar documentación de APIs y playgrounds
+    setupDocs();
+    
     // Actualizar contador de favoritos en la interfaz
     updateFavoritesBadge();
 
@@ -1293,4 +1296,190 @@ function setupE621TagSearch() {
 
     // Renderizar los chips de búsquedas recientes al iniciar
     renderE621Recents();
+}
+
+// ==========================================================================
+// SECCIÓN: DOCUMENTACIÓN DE APIS (PLAYGROUND INTERACTIVO)
+// ==========================================================================
+function setupDocs() {
+    const docsNavItems = document.querySelectorAll('.docs-nav-item');
+    const docPanes = document.querySelectorAll('.doc-pane');
+    
+    // Navegación interna de la documentación
+    docsNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            docsNavItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            const targetPaneId = item.getAttribute('data-pane');
+            docPanes.forEach(pane => {
+                if (pane.id === targetPaneId) {
+                    pane.style.display = 'block';
+                } else {
+                    pane.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // 1. Playground de Imagen: GET /api/v1/image
+    const btnPlayImage = document.getElementById('btnPlayImage');
+    const playCategory = document.getElementById('playCategory');
+    const playProvider = document.getElementById('playProvider');
+    const playImageResult = document.getElementById('playImageResult');
+    const playImageQueryUrl = document.getElementById('playImageQueryUrl');
+    const playImageJsonCode = document.getElementById('playImageJsonCode');
+
+    if (btnPlayImage && playCategory && playProvider) {
+        btnPlayImage.addEventListener('click', async () => {
+            const category = playCategory.value;
+            const provider = playProvider.value;
+            
+            // Determinar si la categoría requiere NSFW (hentai o hneko)
+            const isNsfw = ['hentai', 'hneko'].includes(category);
+            
+            const host = window.location.host;
+            const protocol = host.includes('localhost') ? 'http' : 'https';
+            
+            // Construir los query params
+            const params = new URLSearchParams();
+            params.set('category', category);
+            if (provider) params.set('provider', provider);
+            if (isNsfw) params.set('nsfw', 'true');
+            
+            const urlPath = `/api/v1/image?${params.toString()}`;
+            const fullUrl = `${protocol}://${host}${urlPath}`;
+            
+            playImageResult.style.display = 'block';
+            playImageQueryUrl.textContent = fullUrl;
+            playImageJsonCode.textContent = 'Cargando datos de la API...';
+            
+            try {
+                const res = await fetch(urlPath);
+                const data = await res.json();
+                playImageJsonCode.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                playImageJsonCode.textContent = JSON.stringify({ success: false, error: 'Error de red o conexión', details: err.message }, null, 2);
+            }
+        });
+    }
+
+    // 2. Playground de Categorías: GET /api/v1/categories
+    const btnPlayCategories = document.getElementById('btnPlayCategories');
+    const playCategoriesResult = document.getElementById('playCategoriesResult');
+    const playCategoriesJsonCode = document.getElementById('playCategoriesJsonCode');
+
+    if (btnPlayCategories) {
+        btnPlayCategories.addEventListener('click', async () => {
+            playCategoriesResult.style.display = 'block';
+            playCategoriesJsonCode.textContent = 'Consultando Gateway...';
+            
+            try {
+                const res = await fetch('/api/v1/categories');
+                const data = await res.json();
+                playCategoriesJsonCode.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                playCategoriesJsonCode.textContent = JSON.stringify({ success: false, error: err.message }, null, 2);
+            }
+        });
+    }
+
+    // 3. Playground de Traducción: GET /api/translate
+    const btnPlayTranslate = document.getElementById('btnPlayTranslate');
+    const playTranslateText = document.getElementById('playTranslateText');
+    const playTranslateResult = document.getElementById('playTranslateResult');
+    const playTranslateQueryUrl = document.getElementById('playTranslateQueryUrl');
+    const playTranslateJsonCode = document.getElementById('playTranslateJsonCode');
+
+    if (btnPlayTranslate && playTranslateText) {
+        btnPlayTranslate.addEventListener('click', async () => {
+            const text = playTranslateText.value.trim();
+            if (!text) {
+                showToast('Por favor introduce un texto válido en inglés.', 'error');
+                return;
+            }
+            
+            const host = window.location.host;
+            const protocol = host.includes('localhost') ? 'http' : 'https';
+            const urlPath = `/api/translate?text=${encodeURIComponent(text)}`;
+            const fullUrl = `${protocol}://${host}${urlPath}`;
+            
+            playTranslateResult.style.display = 'block';
+            playTranslateQueryUrl.textContent = fullUrl;
+            playTranslateJsonCode.textContent = 'Llamando a Gemma via Serverless Function...';
+            
+            try {
+                const res = await fetch(urlPath);
+                const data = await res.json();
+                playTranslateJsonCode.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                playTranslateJsonCode.textContent = JSON.stringify({ error: err.message }, null, 2);
+            }
+        });
+    }
+
+    // 4. Playground de Utilidades: fact, why, owoify, 8ball
+    const btnPlayUtility = document.getElementById('btnPlayUtility');
+    const playUtilitySelect = document.getElementById('playUtilitySelect');
+    const playUtilityInputGroup = document.getElementById('playUtilityInputGroup');
+    const playUtilityInputLabel = document.getElementById('playUtilityInputLabel');
+    const playUtilityInputValue = document.getElementById('playUtilityInputValue');
+    const playUtilityResult = document.getElementById('playUtilityResult');
+    const playUtilityQueryUrl = document.getElementById('playUtilityQueryUrl');
+    const playUtilityJsonCode = document.getElementById('playUtilityJsonCode');
+
+    if (btnPlayUtility && playUtilitySelect && playUtilityInputValue) {
+        // Manejar el cambio del selector
+        playUtilitySelect.addEventListener('change', () => {
+            const val = playUtilitySelect.value;
+            if (val === 'owoify') {
+                playUtilityInputGroup.style.display = 'flex';
+                playUtilityInputLabel.textContent = 'Texto a Owoify:';
+                playUtilityInputValue.value = 'Hello world, how are you doing today?';
+            } else if (val === '8ball') {
+                playUtilityInputGroup.style.display = 'flex';
+                playUtilityInputLabel.textContent = 'Pregunta al oráculo:';
+                playUtilityInputValue.value = '¿Tendré buena suerte hoy?';
+            } else {
+                playUtilityInputGroup.style.display = 'none';
+            }
+        });
+
+        // Manejar la ejecución
+        btnPlayUtility.addEventListener('click', async () => {
+            const val = playUtilitySelect.value;
+            const inputVal = playUtilityInputValue.value.trim();
+            
+            let urlPath = `/api/${val}`;
+            if (val === 'owoify') {
+                if (!inputVal) {
+                    showToast('Por favor escribe un texto para owoify.', 'error');
+                    return;
+                }
+                urlPath += `?text=${encodeURIComponent(inputVal)}`;
+            } else if (val === '8ball') {
+                if (!inputVal) {
+                    showToast('Por favor escribe tu pregunta.', 'error');
+                    return;
+                }
+                urlPath += `?question=${encodeURIComponent(inputVal)}`;
+            }
+            
+            const host = window.location.host;
+            const protocol = host.includes('localhost') ? 'http' : 'https';
+            const fullUrl = `${protocol}://${host}${urlPath}`;
+            
+            playUtilityResult.style.display = 'block';
+            playUtilityQueryUrl.textContent = fullUrl;
+            playUtilityJsonCode.textContent = 'Consultando servicio...';
+            
+            try {
+                const res = await fetch(urlPath);
+                const data = await res.json();
+                playUtilityJsonCode.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                playUtilityJsonCode.textContent = JSON.stringify({ error: err.message }, null, 2);
+            }
+        });
+    }
 }
