@@ -82,6 +82,7 @@ const categories = {
     kemonomimi: { type: 'sfw', providers: ['nekobot'] },
     coffee: { type: 'sfw', providers: ['nekobot'] },
     food: { type: 'sfw', providers: ['nekobot'] },
+    gah: { type: 'sfw', providers: ['nekobot'] },
 
     // ---- NSFW ----
     nsfw_waifu: { type: 'nsfw', providers: ['waifu.im'] },
@@ -97,7 +98,19 @@ const categories = {
     thighs: { type: 'nsfw', providers: ['nekobot'] },
     tentacle: { type: 'nsfw', providers: ['nekobot'] },
     boobs: { type: 'nsfw', providers: ['nekobot'] },
-    yaoi: { type: 'nsfw', providers: ['nekobot'] }
+    yaoi: { type: 'nsfw', providers: ['nekobot'] },
+    hneko: { type: 'nsfw', providers: ['nekobot'] },
+    hkitsune: { type: 'nsfw', providers: ['nekobot'] },
+    hboobs: { type: 'nsfw', providers: ['nekobot'] },
+    hass: { type: 'nsfw', providers: ['nekobot'] },
+    hthigh: { type: 'nsfw', providers: ['nekobot'] },
+    hmidriff: { type: 'nsfw', providers: ['nekobot'] },
+    hanal: { type: 'nsfw', providers: ['nekobot'] },
+    pussy: { type: 'nsfw', providers: ['nekobot'] },
+    thigh: { type: 'nsfw', providers: ['nekobot'] },
+    anal: { type: 'nsfw', providers: ['nekobot'] },
+    gonewild: { type: 'nsfw', providers: ['nekobot'] },
+    "4k": { type: 'nsfw', providers: ['nekobot'] }
 };
 
 module.exports = {
