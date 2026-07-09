@@ -443,7 +443,7 @@ function filterCategoriesByProvider() {
                 (allowed.includes('life') && provider === 'nekos.life') || 
                 (allowed.includes('best') && provider === 'nekos.best') || 
                 (allowed.includes('im') && provider === 'waifu.im') ||
-                ((allowed.includes('life') || allowed.includes('best') || allowed.includes('gifukai')) && provider === 'gifukai')) {
+                (provider === 'gifukai' && (allowed === 'all' || allowed.includes('best') || allowed.includes('gifukai')) && btn.getAttribute('data-category') !== 'baka')) {
                 btn.style.display = 'flex';
             } else {
                 btn.style.display = 'none';

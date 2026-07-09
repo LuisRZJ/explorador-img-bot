@@ -16,7 +16,7 @@ const categories = {
     feed: { type: 'sfw', providers: ['nekos.life', 'nekos.best', 'gifukai'] },
     cuddle: { type: 'sfw', providers: ['nekos.life', 'nekos.best', 'gifukai'] },
     smug: { type: 'sfw', providers: ['nekos.life', 'nekos.best', 'gifukai'] },
-    baka: { type: 'sfw', providers: ['nekos.life', 'nekos.best', 'gifukai'] },
+    baka: { type: 'sfw', providers: ['nekos.life', 'nekos.best'] },
     
     // Nekos.life exclusives
     spank: { type: 'sfw', providers: ['nekos.life'] },
