@@ -587,12 +587,15 @@ function updatePageTitle() {
 function togglePairingSelector(providerName) {
     const wrapper = document.getElementById('pairingSelectorWrapper');
     const select = document.getElementById('pairingSelect');
+    const navbar = document.querySelector('.navbar');
     if (wrapper) {
         if (providerName === 'gifukai') {
             wrapper.style.display = 'flex';
+            if (navbar) navbar.classList.add('has-pairing');
         } else {
             wrapper.style.display = 'none';
             if (select) select.value = '';
+            if (navbar) navbar.classList.remove('has-pairing');
         }
     }
 }
